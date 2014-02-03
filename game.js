@@ -15,7 +15,9 @@ function init() {
     ctx_bg.imageSmoothingEnabled = false;
     ctx_bg.webkitImageSmoothingEnabled = false;
     ctx_bg.mozImageSmoothingEnabled = false;
-    console.log("THIRD");
+
+    VIEW.width = canvas.width / Math.pow(2,SCALE);
+    VIEW.height= canvas.height / Math.pow(2,SCALE);
 
     var super_run = new Sprite( {
     //  x:canvas.width / (2 * SCALE),
@@ -131,7 +133,8 @@ function init() {
     }
 
     bg();
-//  ctx.translate(canvas.width/(2 * SCALE),canvas.height/(2 * SCALE));
+    ctx.scale(Math.pow(2, SCALE), Math.pow(2, SCALE));
+    ctx.translate(VIEW.width/2 - SPRITES[0].x,VIEW.height/2 - SPRITES[0].y);
     setInterval(update,100);
 
 }
@@ -240,13 +243,13 @@ function update() {
     
     //SCALING
     if (KEYS_DOWN[KEYS.SHIFT]) {
-        if (KEYS_DOWN[KEYS.Z] && SCALE > 1) {
+        if (KEYS_DOWN[KEYS.Z] && SCALE > 0) {
             SCALE--;
             ctx.scale(.5,.5);
             ctx.translate(SPRITES[0].x,SPRITES[0].y);
         }
     } else {
-        if (KEYS_DOWN[KEYS.Z] && SCALE < 5) { 
+        if (KEYS_DOWN[KEYS.Z] && SCALE < 4) { 
             SCALE++;
             ctx.scale(2,2);
             ctx.translate(-SPRITES[0].x/2,-SPRITES[0].y/2);

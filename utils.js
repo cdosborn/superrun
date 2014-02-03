@@ -1,7 +1,7 @@
 var canvas, canvas_bg, ctx, ctx_bg; 
 console.log("FIrST");
 var NUM_SHEEP = 100;
-var SCALE = 1;
+var SCALE = 3;
 var KEYS_DOWN = {};
 var KEYS = {
     SPACE:32,
