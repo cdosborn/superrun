@@ -49,7 +49,15 @@ function init() {
                 this.dy--;
             }
 
-            // Decrease veolcity when keys not pressed
+            //On key change instantly head that direction
+            if (KEYS_DOWN[KEYS.LEFT] && this.dx > 0) {
+                this.dx *= -1;
+            }
+            if (KEYS_DOWN[KEYS.RIGHT] && this.dx < 0) {
+                this.dx *= -1;
+            }
+
+            // Decrease veolcity when keys not pressed or both pressed
             if (!KEYS_DOWN[KEYS.RIGHT] && !KEYS_DOWN[KEYS.LEFT]) {
                 this.dx = Math.round(this.dx / 3);
             }
@@ -61,9 +69,9 @@ function init() {
                 var state = (!this.flipped) ? "pick_up" : "pick_up_flip";
                 this.set_state(state);
                 this.dx = this.dy = 0;
-            } else  if (this.dx > 0 || (!this.flipped  && Math.abs(this.dy) > 0)) {
+            } else  if (this.dx > 0 || (this.dx == 0 && Math.abs(this.dy) > 0  && !this.flipped)) {
                 this.set_state("walk");
-            } else if (this.dx < 0 || (this.flipped  && Math.abs(this.dy) > 0)) {
+            } else if (this.dx < 0 || (this.dx == 0 && Math.abs(this.dy) > 0 )) {
                 this.set_state("walk_flip");
             } else if (!this.flipped) { //dx == 0
                 this.set_state("stand");
