@@ -22,10 +22,13 @@
                     var text = "Updates:<br>";
                     for (var i = 0; i < 10; i++) {
                         var commit = response[i];
-                        var author = "<a href=" + commit['author']['html_url'] + ">" + commit['committer']['login'] + "</a>";
+                        var author_link = "<a href=" + commit['author']['html_url'] + ">" + commit['committer']['login'] + "</a>";
                         var message = commit['commit']['message']
                         var date = new Date(commit['commit']['committer']['date']);
-                        text += (date.getMonth() + 1) + "/" + date.getDay() + "/" + date.getFullYear().toString().substring(2) + ": " + author + " " + message + "<br><br>";
+                        var month = date.getMonth() + 1 + ""; 
+                        var day = date.getDay() + 1 + ""; 
+                        var year = date.getFullYear().toString().substring(2); 
+                        text += month + "/" + day + "/" + year + " " + author_link + ":<br>" + message + "<br><br>";
                     }
                     document.getElementById("git-commits").innerHTML = text;
                 }

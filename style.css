@@ -6,3 +6,21 @@
     width:480; 
     margin:auto;
 }
+
+* {
+   /*  font-family:'IM Fell Double Pica', serif;*/
+   font-family: 'Anaheim', sans-serif;
+   /*font-family:"Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif; */
+   /*  font-family:"Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif; */
+   letter-spacing:0px;
+}
+
+html {
+    height:100%;
+    background:#D6D6D6;
+}
+
+body {
+    margin:0px;
+    font-size:110%;
+}
