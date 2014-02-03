@@ -9,7 +9,31 @@
         <div id="about">
             <p>Desc: This is a WIP game that updates with every change I push. Enjoy.</p>
             <p>Controls: arrow-keys, z(oom), shift-z(oom out)</p>
+            <p id="git-commits"></p>
         </div>
+        <script>
+            var response;
+        (function() {
+            var xmlhttp = new XMLHttpRequest();
 
+            xmlhttp.onreadystatechange = function() {
+                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                    response = JSON.parse(xmlhttp.responseText);
+                    var text = "Updates:<br>";
+                    for (var i = 0; i < 10; i++) {
+                        var commit = response[i];
+                        var author = "<a href=" + commit['author']['html_url'] + ">" + commit['committer']['login'] + "</a>";
+                        var message = commit['commit']['message']
+                        var date = new Date(commit['commit']['committer']['date']);
+                        text += (date.getMonth() + 1) + "/" + date.getDay() + "/" + date.getFullYear().toString().substring(2) + ": " + author + " " + message + "<br><br>";
+                    }
+                    document.getElementById("git-commits").innerHTML = text;
+                }
+            }
+
+            xmlhttp.open("GET", "https://api.github.com/repos/cdosborn/superrun/commits", true);
+            xmlhttp.send();
+        })();
+        </script>
     </body>  
 </html>  
