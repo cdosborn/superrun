@@ -1,5 +1,4 @@
 function init() {
-    console.log("THIRD");
     document.addEventListener('keydown', keyPressed, false);
     document.addEventListener('keyup', keyReleased, false); 
     canvas = document.getElementById("canvas");  

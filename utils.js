@@ -1,4 +1,5 @@
 var canvas, canvas_bg, ctx, ctx_bg; 
+
 console.log("FIrST");
 var NUM_SHEEP = 100;
 var SCALE = 2;
@@ -23,6 +24,9 @@ var SPRITES = [];
 
 function keyPressed(e) {
     KEYS_DOWN[e.keyCode] = true;
+    if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+        e.preventDefault();
+    }
 };
 
 function keyReleased(e) {
