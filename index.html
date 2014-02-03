@@ -6,22 +6,32 @@
     <script src="game.js"></script> 
     </head>  
     <body>
+        <br>
         <canvas id="canvas"  width="480px" height="320"></canvas>
         <div id="about">
             <p>Desc: This is a WIP game that updates with every change I push. Enjoy.</p>
             <p>Controls: arrow-keys, z(oom), shift-z(oom out)</p>
             <p id="git-commits"></p>
+            <br>
         </div>
         <script>
-            var response;
+        var NUM_POSTS = 10;
+        var text = "";
+        var rest = "";
+        var p = document.getElementById("git-commits");
+        var span;
+
+        function more() {
+            p.innerHTML = text + rest;
+        };
+
         (function() {
             var xmlhttp = new XMLHttpRequest();
-
             xmlhttp.onreadystatechange = function() {
                 if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
                     response = JSON.parse(xmlhttp.responseText);
-                    var text = "Updates:<br>";
-                    for (var i = 0; i < 10; i++) {
+                    text = "Updates:<br>";
+                    for (var i = 0; i < response.length; i++) {
                         var commit = response[i];
                         var author_link = "<a href=" + commit['author']['html_url'] + ">" + commit['committer']['login'] + "</a>";
                         var message = commit['commit']['message']
@@ -29,12 +39,18 @@
                         var month = date.getMonth() + 1 + ""; 
                         var day = date.getDay() + 1 + ""; 
                         var year = date.getFullYear().toString().substring(2); 
-                        text += month + "/" + day + "/" + year + " " + author_link + ":<br>" + message + "<br><br>";
-                    }
-                    document.getElementById("git-commits").innerHTML = text;
+                        var hours = date.getHours() + "";
+                        var minutes = date.getMinutes() + "";
+                        if (i < NUM_POSTS) {
+                            text += month + "/" + day + "/" + year + " " + hours + ":" + minutes + " " + author_link + ":<br>" + message + "<br><br>";
+                        } else {
+                            rest += month + "/" + day + "/" + year + " " + hours + ":" + minutes + " " + author_link + ":<br>" + message + "<br><br>";
+                        }
+                     }
                 }
+                p.innerHTML = text + "<span id=\"expand\" onclick=\"more()\">...</span>";
             }
-
+            
             xmlhttp.open("GET", "https://api.github.com/repos/cdosborn/superrun/commits", true);
             xmlhttp.send();
         })();

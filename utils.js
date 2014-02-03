@@ -1,6 +1,4 @@
 var canvas, canvas_bg, ctx, ctx_bg; 
-
-console.log("FIrST");
 var NUM_SHEEP = 100;
 var SCALE = 2;
 var KEYS_DOWN = {};

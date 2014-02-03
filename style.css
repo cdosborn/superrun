@@ -24,3 +24,8 @@ body {
     margin:0px;
     font-size:110%;
 }
+
+#expand {
+    cursor: pointer; 
+    text-decoration: underline;
+}
