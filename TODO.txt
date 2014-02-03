@@ -1,0 +1,6 @@
+each sprite has a clear method that erases its bounding_box 
+remove "special numbers" ex. dx limit on super_run
+fluid scaling (always ends on even power scale)
+proper layering for drawing, every sprite represented by 3d (w X h X d)
+figure out if more efficient to have one fram animations set repeat to true or alternative?
+efficient drawing (ideally only draws when necessary)
