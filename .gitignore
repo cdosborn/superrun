@@ -4,3 +4,4 @@
 *.un~
 Session.vim
 .netrwhist
+.DS_STORE
