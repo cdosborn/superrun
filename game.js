@@ -243,7 +243,7 @@ function update() {
     
     //SCALING
     if (KEYS_DOWN[KEYS.SHIFT]) {
-        if (KEYS_DOWN[KEYS.Z] && SCALE > 0) {
+        if (KEYS_DOWN[KEYS.Z] && SCALE > 1) {
             SCALE--;
             ctx.scale(.5,.5);
             ctx.translate(SPRITES[0].x,SPRITES[0].y);
@@ -255,7 +255,8 @@ function update() {
             ctx.translate(-SPRITES[0].x/2,-SPRITES[0].y/2);
         }
     }
-    clear();
+    ctx.clearRect(VIEW.x,VIEW.y,VIEW.width,VIEW.height);
+    //clear();
 
 
     ctx.drawImage(canvas_bg,VIEW.x,VIEW.y,VIEW.width,VIEW.height,VIEW.x,VIEW.y,VIEW.width,VIEW.height);
