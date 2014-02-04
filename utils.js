@@ -39,7 +39,8 @@ var _IMAGES = {
     superrun_flip: new Image(),
     grass: new Image(),
     lamb: new Image(),
-    lamb_flip: new Image()
+    lamb_flip: new Image(),
+    flower: new Image()
 };
 
 _IMAGES['fence'].src = 'images/fence.png';
@@ -49,6 +50,7 @@ _IMAGES['superrun_flip'].src = 'images/superrs.png';
 _IMAGES['grass'].src = 'images/grass-bg.png';
 _IMAGES['lamb'].src = 'images/lamb.png';
 _IMAGES['lamb_flip'].src = 'images/lambrs.png';
+_IMAGES['flower'].src = 'images/floweranim.png';
 
 
 //idle state?? no draw

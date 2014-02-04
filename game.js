@@ -84,7 +84,17 @@ function init() {
 
         }});
 
-    var attr = {
+    var flower_obj = {
+        flipped:false,
+        width:7,
+        height:9,
+        index:0,
+        states: {growing: {img:_IMAGES['flower'],start:0,repeat:false}},
+        state: "growing",
+        update: function(){}, };
+
+
+    var sheep_obj = {
         flipped:false,
         width:12,
         height:9,
@@ -132,11 +142,19 @@ function init() {
 
     SPRITES.push(super_run);
     for (var i = 0; i < NUM_SHEEP; i++) {
-        var sheep = new Sprite(attr); 
-        sheep.x = canvas.width/2;
-        sheep.y = canvas.height/2;
+        var flower = new Sprite(flower_obj);
+        var sheep = new Sprite(sheep_obj); 
+        var rand1 = Math.floor(Math.random() * 10 - 5);
+        var rand2 = Math.floor(Math.random() * 10 - 5);
+        sheep.x = rand1 + canvas.width/2;
+        sheep.y = rand2 + canvas.height/2;
         sheep.angst = Math.floor(Math.random() * 2 + 1);
         SPRITES.push(sheep);    
+        rand1 = Math.floor(Math.random() * canvas.width)
+        rand2 = Math.floor(Math.random() * canvas.height)
+        flower.x = rand1;
+        flower.y = rand2;
+        SPRITES.push(flower);
     }
 
     bg();

@@ -1,3 +1,4 @@
+add console input ability
 each sprite has a clear method that erases its bounding_box 
 remove "special numbers" ex. dx limit on super_run
 fluid scaling (always ends on even power scale)
