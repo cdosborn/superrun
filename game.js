@@ -108,7 +108,7 @@ function init() {
         flipped:false,
         width:12,
         height:9,
-        depth:2,
+        depth:4,
         angst:1,
         states: {stand: {img:_IMAGES['lamb'],start:0,last:0,repeat:true},
                  stand_flip: {img:_IMAGES['lamb_flip'],start:0,last:0,repeat:true},
