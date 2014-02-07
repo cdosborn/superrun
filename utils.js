@@ -1,7 +1,7 @@
 var canvas, canvas_bg, ctx, ctx_bg, super_run; 
-var NUM_SHEEP = 4;
-var DEBUG = true;
-var SCALE = 1;
+var NUM_SHEEP = 5;
+var DEBUG = false;
+var SCALE = 2;
 var KEYS_DOWN = {};
 var KEYS = {
     SPACE:32,
@@ -102,9 +102,11 @@ function Sprite(attr, obj_index) {
             frame = this._frame;
         }
 
-        ctx.strokeStyle = this.debugColor;
-        ctx.strokeRect(this.x, this.y, this.width, this.height);
-        ctx.strokeRect(this.x, this.y + this.height - this.depth/2, this.width, this.depth);
+        if (DEBUG) {
+            ctx.strokeStyle = this.debugColor;
+            ctx.strokeRect(this.x, this.y, this.width, this.height);
+            ctx.strokeRect(this.x, this.y + this.height - this.depth/2, this.width, this.depth);
+        }
         context.drawImage(anim.img, frame * this.width, 0, this.width, this.height, this.x, this.y, this.width, this.height);
     };
     //This is a pretty neat idea VV worth talking about
