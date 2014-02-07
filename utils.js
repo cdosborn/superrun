@@ -1,5 +1,6 @@
 var canvas, canvas_bg, ctx, ctx_bg; 
-var NUM_SHEEP = 100;
+var NUM_SHEEP = 4;
+var DEBUG = true;
 var SCALE = 2;
 var KEYS_DOWN = {};
 var KEYS = {
@@ -11,6 +12,13 @@ var KEYS = {
     SHIFT:16,
     Z:90
 };
+var REND = {
+    x:0,
+    y:0,
+    width:0,
+    height:0
+}
+
 var VIEW = {
     x:0,
     y:0,
@@ -33,7 +41,10 @@ function keyReleased(e) {
 
 var _COLORS = {};
 var _IMAGES = {
-    fence: new Image(),
+    fence_top: new Image(),
+    fence_bottom: new Image(),
+    fence_left: new Image(),
+    fence_right: new Image(),
     gate: new Image(),
     superrun: new Image(),
     superrun_flip: new Image(),
@@ -43,8 +54,11 @@ var _IMAGES = {
     flower: new Image()
 };
 
-_IMAGES['fence'].src = 'images/fence.png';
-_IMAGES['gate'].src = 'images/frontfence.png';
+_IMAGES['fence_top'].src = 'images/fence_top.png';
+_IMAGES['fence_bottom'].src = 'images/fence_bottom.png';
+_IMAGES['fence_left'].src = 'images/fence_left.png';
+_IMAGES['fence_right'].src = 'images/fence_right.png';
+_IMAGES['gate'].src = 'images/gate.png';
 _IMAGES['superrun'].src = 'images/super.png';
 _IMAGES['superrun_flip'].src = 'images/superrs.png';
 _IMAGES['grass'].src = 'images/grass-bg.png';
@@ -52,11 +66,10 @@ _IMAGES['lamb'].src = 'images/lamb.png';
 _IMAGES['lamb_flip'].src = 'images/lambrs.png';
 _IMAGES['flower'].src = 'images/floweranim.png';
 
-
-//idle state?? no draw
 function Sprite(attr) {
     this.x = attr.x;
     this.y = attr.y;
+    this.debugColor = "blue";
     this.width = attr.width;
     this.height = attr.height;
     this.dx = 0;
@@ -77,8 +90,18 @@ function Sprite(attr) {
             this._frame += 1;
         } else if (anim.repeat) {
             this._frame = anim.start;
+        } 
+
+        var frame;
+        if (anim.reverse) {
+            frame = anim.last - this._frame;
+        } else {
+            frame = this._frame;
         }
-        context.drawImage(anim.img, this._frame * this.width, 0, this.width, this.height, this.x, this.y, this.width, this.height);
+
+        ctx.strokeStyle = this.debugColor;
+        ctx.strokeRect(this.x, this.y, this.width, this.height);
+        context.drawImage(anim.img, frame * this.width, 0, this.width, this.height, this.x, this.y, this.width, this.height);
     };
     //This is a pretty neat idea VV worth talking about
     this.set_state = function(state) {
@@ -88,7 +111,17 @@ function Sprite(attr) {
             this._state = state;
         }
     };
-    this.collide
+    this.collide = function(other) {
+        var x1 = this.x;
+        var x2 = this.x + this.width;
+        var y1 = this.y;
+        var y2 = this.y + this.height;
+        var x3 = other.x;
+        var x4 = other.x + other.width;
+        var y3 = other.y;
+        var y4 = other.y + other.height;
+        return ((x3 >= x1 && x3 <= x2) || (x4 >= x1 && x3 <= x2)) && ((y3 >= y1 && y3 <= y2) || (y4 >= y1 && y3 <= y2))
+    }
 
     this._state = attr.state;
     this._frame = 0;
@@ -97,75 +130,7 @@ function Sprite(attr) {
 
 }
 
-function fence() {
-    if (openGate) {
-        ctx.drawImage(_IMAGES['fence'],gateFrame * 147,0,147,66,7,2,147,66);
-        gateFrame--;
-        if (gateFrame<0) {gateFrame=0;}
-    } else {
-        ctx.drawImage(_IMAGES['fence'],gateFrame * 147,0,147,66,7,2,147,66);
-        gateFrame++;
-        if (gateFrame>3) {gateFrame=3;}
 
-    }
-}
-
-function lamb() {	
-    ctx.drawImage(_IMAGES['lamb'],(lambFrame * 12),0,12,9,lambX,lambY,12,9);
-    lambFrame++;
-    if(lambFrame>3) {lambFrame=0;}	
-}
-
-
-
-var gate = new Sprite( {
-        x:0,
-        y:0,
-        index:0,
-        states: {open: {img:_IMAGES['gate'],height:16,width:11,start:0,last:0,repeat:false},
-                 close:{img:_IMAGES['gate'],height:16,width:11,start:6,last:0,repeat:false}},
-        state: "stand",
-        update: function() {
-            if (KEYS_DOWN[KEYS.LEFT] && this.dx > -3) {
-                this.dx--;
-            }
-            if (KEYS_DOWN[KEYS.RIGHT] && this.dx < 3) {
-                this.dx++;
-            }
-            if (KEYS_DOWN[KEYS.DOWN] && this.dy < 3) {
-                this.dy++;
-            }
-            if (KEYS_DOWN[KEYS.UP] && this.dy > -3) {
-                this.dy--;
-            }
-
-            // Decrease veolcity when keys not pressed
-            if (!KEYS_DOWN[KEYS.RIGHT] && !KEYS_DOWN[KEYS.LEFT]) {
-                this.dx = Math.round(this.dx / 3);
-            }
-            if (!KEYS_DOWN[KEYS.UP] && !KEYS_DOWN[KEYS.DOWN]) {
-                this.dy = Math.round(this.dy / 3);
-            }
-
-            if (KEYS_DOWN[KEYS.SPACE]) {
-                var state = (!this.flipped) ? "pick_up" : "pick_up_flip";
-                this.set_state(state);
-                this.dx = this.dy = 0;
-            } else  if (this.dx > 0 || (!this.flipped  && Math.abs(this.dy) > 0)) {
-                this.set_state("walk");
-            } else if (this.dx < 0 || (this.flipped  && Math.abs(this.dy) > 0)) {
-                this.set_state("walk_flip");
-            } else if (!this.flipped) { //dx == 0
-                this.set_state("stand");
-            } else if (this.flipped) {
-                this.set_state("stand_flip");
-            }
-
-            this.flipped = !(this._state == "walk" || this._state == "stand" || this._state == "pick_up");
-            this.y += this.dy; 
-            this.x += this.dx;
-
-        }});
 
 var lambFrame=0;
 var gateFrame=3;
@@ -187,6 +152,3 @@ var dy = 0;
 var distX=0;
 var distY=0;
 var sector;
-
-
-console.log("SECOND");

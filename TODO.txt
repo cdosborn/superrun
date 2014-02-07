@@ -1,4 +1,5 @@
 drawer should only draw objs within frame 
+precompute random values ??
 request animation frame
 add sprite ability to delete oneself (flowers)
 add sprite expiration method (after x time or smthng)

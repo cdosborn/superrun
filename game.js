@@ -15,12 +15,11 @@ function init() {
     ctx_bg.webkitImageSmoothingEnabled = false;
     ctx_bg.mozImageSmoothingEnabled = false;
 
-    VIEW.width = canvas.width / Math.pow(2,SCALE);
-    VIEW.height= canvas.height / Math.pow(2,SCALE);
+    REND.width = 240;
+    REND.height= 160;
 
     var super_run = new Sprite( {
-    //  x:canvas.width / (2 * SCALE),
-    //  y:canvas.height / (2 * SCALE),
+        debugColor:"blue",
         x:canvas.width/2,
         y:canvas.height/2,
         width:11,
@@ -82,6 +81,14 @@ function init() {
             this.y += this.dy; 
             this.x += this.dx;
 
+
+            if (this.collide(SPRITES[9])){
+                this.debugColor = "red";
+            } else {
+                this.debugColor = "blue";
+            }
+
+
         }});
 
     var flower_obj = {
@@ -113,7 +120,6 @@ function init() {
             var change = rand % 10 == 0;
             var walking = this.dx != 0;
             if (change) {
-                console.log("CHANGE");
                 this.dx = this.dy = 0;
                 if (walking) {
                     var state = (this.flipped) ? "stand_flip" : "stand"; 
@@ -140,6 +146,23 @@ function init() {
             this.x += this.dx;
         }};
 
+var gate = new Sprite( { 
+    x:112,
+    y:43,
+    width:25,
+    height:25,
+    state:"close",
+    index:0,
+    states: { open: {img:_IMAGES['gate'],start:0,repeat:false},
+              close:{img:_IMAGES['gate'],start:0,repeat:false,reverse:true}},
+    update: function() {
+        if (this.collide(SPRITES[0])) {
+            this.set_state("open");
+        } else {
+            this.set_state("close");
+        } 
+    }});
+
     SPRITES.push(super_run);
     for (var i = 0; i < NUM_SHEEP; i++) {
         var flower = new Sprite(flower_obj);
@@ -156,98 +179,18 @@ function init() {
         flower.y = rand2;
         SPRITES.push(flower);
     }
+    SPRITES.push(gate);
 
     bg();
-    ctx.scale(Math.pow(2, SCALE), Math.pow(2, SCALE));
-    ctx.translate(VIEW.width/2 - SPRITES[0].x,VIEW.height/2 - SPRITES[0].y);
+
+    for (var i = 1; i < SCALE; i++) {
+        setViewpoint(i + 1);
+        ctx.save();
+        ctx.scale(2,2);
+    }
+
     setInterval(update,100);
 
-}
-
-function gameLogic() {
-    if(KEYS_DOWN[KEYS.LEFT] === true) {
-        if (dx != -6) {
-            dx--;
-        }
-    }
-    if(KEYS_DOWN[KEYS.RIGHT]) {
-        if (dx != 6) {
-            dx++;
-        }
-    }
-    if(KEYS_DOWN[KEYS.UP]) {
-        if (dy != -3) {
-            dy--;
-        }
-    }
-    if(KEYS_DOWN[KEYS.DOWN]) {
-        if (dy != 3) {
-            dy++;
-        }
-    }
-
-    if (!KEYS_DOWN[KEYS.LEFT] && !KEYS_DOWN[KEYS.RIGHT]) {
-        dx = 0;
-    }
-
-    if (!KEYS_DOWN[KEYS.UP] && !KEYS_DOWN[KEYS.DOWN]) {
-        dy = 0;
-    }
-
-    if (KEYS_DOWN[KEYS.SPACE]) {
-        if ((distX<=8 && distX>=-6) && (distY<=-3 && distY>=-10)) {
-            lambX = x;
-            lambY = y + 4;
-            lambIsAttached=true;
-        } else {
-            moving=false;
-            dx=0;
-            dy=0;
-        }
-    } else {
-        if (lambIsAttached) {
-            lambIsAttached=false;
-            lambY+=4;
-        }
-        superKneelFrame=6; //Set the kneel frame counter to beginning	
-    }
-
-
-    if (dx == 0 && dy == 0) { 
-        moving=false;
-    } else {moving=true;}
-
-    //Right Barrier 
-    if (x<=148 && y<54 && x>140 && KEYS_DOWN[KEYS.LEFT]) {
-        dx=0;
-        x=Math.max(x,148);
-    } else if (x>=133 && y<54 && x<140 && KEYS_DOWN[KEYS.RIGHT]) {
-        dx=0;
-        x=Math.min(x,133);
-    } else if (x<=16 && y<54 && KEYS_DOWN[KEYS.LEFT]) { //Left Barrier
-        dx=0;
-        x=Math.max(x,16);
-    }
-
-    if (y<=0 && x>=16 && x<=133 && KEYS_DOWN[KEYS.UP]) { //northern bound
-        dy=0;
-        y=Math.max(y,0);
-        if (lambIsAttached) {lambY=Math.max(lambY, 4);}
-
-    } else if (y>=50 && y<53 && x>=0 && x<=115 && KEYS_DOWN[KEYS.DOWN]) {
-        dy=0;
-        y=Math.min(y,50);
-        if (lambIsAttached) {lambY=Math.min(lambY, 58);}
-
-    } else if (y<=55 && y>52 && x>=0 && x<=115 && KEYS_DOWN[KEYS.UP]) {
-        dy=0;
-        y=Math.max(y,55);
-        if (lambIsAttached) {lambY=Math.max(lambY, 59);}
-    }
-
-    if ((x>=105 && x<=145) && (y>=20 && y<=70)) { //super is in area to open the gate
-        openGate=true;
-    } else {openGate=false;}
 }
 
 function render(lastRender) {
@@ -259,47 +202,34 @@ function update() {
         SPRITES[i].update();
     }
 
-    VIEW.x = SPRITES[0].x - 320/2;
-    VIEW.y = SPRITES[0].y - 240/2;
-    VIEW.width = 320;
-    VIEW.height = 240;
-
-    ctx.translate(-SPRITES[0].dx,-SPRITES[0].dy);
-    
     //SCALING
     if (KEYS_DOWN[KEYS.SHIFT]) {
-        if (KEYS_DOWN[KEYS.Z] && SCALE > 1) {
+        if (KEYS_DOWN[KEYS.Z] && SCALE > 2) {
             SCALE--;
-            ctx.scale(.5,.5);
-            ctx.translate(SPRITES[0].x,SPRITES[0].y);
+            ctx.restore();
         }
     } else {
         if (KEYS_DOWN[KEYS.Z] && SCALE < 4) { 
             SCALE++;
+            ctx.save();
             ctx.scale(2,2);
-            ctx.translate(-SPRITES[0].x/2,-SPRITES[0].y/2);
         }
     }
-    ctx.clearRect(VIEW.x,VIEW.y,VIEW.width,VIEW.height);
-    //clear();
 
 
-    ctx.drawImage(canvas_bg,VIEW.x,VIEW.y,VIEW.width,VIEW.height,VIEW.x,VIEW.y,VIEW.width,VIEW.height);
-  //bg();
-    fence();
-    ffence();
+    //ctx.strokeRect(VIEW.x, VIEW.y, VIEW.width, VIEW.height);
+    //console.log("w: " + VIEW.width + ", h: " + VIEW.height + " x: " + VIEW.x + " y: " + VIEW.y + " scale: " + SCALE);
+    
+    setViewpoint(SCALE);
+    ctx.save();
+    ctx.translate(-VIEW.x, -VIEW.y);
+    ctx.clearRect(REND.x,REND.y,REND.width,REND.height);
+    ctx.drawImage(canvas_bg,REND.x,REND.y,REND.width,REND.height,REND.x,REND.y,REND.width,REND.height);
     for (var i = 0; i < SPRITES.length; i++) { 
         SPRITES[i].draw();
     }
-
-    //x and y value not w and h
-//  viewport_w = canvas.width / Math.pow(2, SCALE - 1);
-//  viewport_h = canvas.height / Math.pow(2, SCALE - 1);
-//  ctx.strokeRect(SPRITES[0].x - viewport_w/2,SPRITES[0].y - viewport_h/2,viewport_w,viewport_h);
-    
-
-        //printStats();
-
+    ctx.drawImage(_IMAGES['fence_bottom'],9,54,102,14);
+    ctx.restore();
 }
 
 function clear() {
@@ -312,11 +242,12 @@ function clear() {
 
 function bg() {
     ctx_bg.drawImage(_IMAGES['grass'],0,0,640,480);
+    ctx_bg.drawImage(_IMAGES['fence_top'],9,0,128,12);
+    ctx_bg.drawImage(_IMAGES['fence_left'],0,0,9,68);
+    ctx_bg.drawImage(_IMAGES['fence_right'],137,0,8,68);
 }
 
-function ffence() {
-    ctx.drawImage(_IMAGES['gate'],0,2,160,80);
-}
+function fg() {}
 
 function returnRandY() {
     lambY = Math.floor((Math.random()*100)+25);
@@ -326,14 +257,31 @@ function returnRandX() {
     lambX = Math.floor((Math.random()*250)+25);
 }
 
-function lamb() {	
-    ctx.drawImage(_IMAGES['lamb'],(lambFrame * 12),0,12,9,lambX,lambY,12,9);
-    lambFrame++;
-    if(lambFrame>3) {lambFrame=0;}	
-}
-
 function printStats() {
     console.log("dx:" + dx + " dy:" + dy + (_DIRECTION.LEFT ? " <" : " >"));
+}
+
+function setViewpoint(scale) {
+
+    REND.x = SPRITES[0].x - REND.width/2;
+    REND.y = SPRITES[0].y - REND.height/2;
+
+    VIEW.width = canvas.width / Math.pow(2,scale - 1);
+    VIEW.height = canvas.height / Math.pow(2,scale - 1);
+
+    VIEW.x = SPRITES[0].x - VIEW.width/2;
+    VIEW.y = SPRITES[0].y - VIEW.height/2
+
+    VIEW.x = Math.max(0,VIEW.x);
+    VIEW.y = Math.max(0,VIEW.y);
+    VIEW.x = Math.min(VIEW.x, canvas.width - VIEW.width);
+    VIEW.y = Math.min(VIEW.y, canvas.height - VIEW.height);
+
+    REND.x = Math.max(0,REND.x);
+    REND.y = Math.max(0,REND.y);
+    REND.x = Math.min(REND.x, canvas.width - REND.width);
+    REND.y = Math.min(REND.y, canvas.height - REND.height);
+
 }
 
 
