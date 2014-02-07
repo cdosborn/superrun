@@ -1,7 +1,7 @@
-var canvas, canvas_bg, ctx, ctx_bg; 
+var canvas, canvas_bg, ctx, ctx_bg, super_run; 
 var NUM_SHEEP = 4;
 var DEBUG = true;
-var SCALE = 2;
+var SCALE = 1;
 var KEYS_DOWN = {};
 var KEYS = {
     SPACE:32,
@@ -27,6 +27,8 @@ var VIEW = {
 }
 
 var SPRITES = [];
+var FLOWERS = [];
+var SHEEP = [];
 
 function keyPressed(e) {
     KEYS_DOWN[e.keyCode] = true;
@@ -66,17 +68,18 @@ _IMAGES['lamb'].src = 'images/lamb.png';
 _IMAGES['lamb_flip'].src = 'images/lambrs.png';
 _IMAGES['flower'].src = 'images/floweranim.png';
 
-function Sprite(attr) {
+function Sprite(attr, obj_index) {
     this.x = attr.x;
     this.y = attr.y;
     this.debugColor = "blue";
     this.width = attr.width;
     this.height = attr.height;
+    this.depth = attr.depth;
     this.dx = 0;
     this.dy = 0;
     this.flipped = attr.flipped;
     this.held = attr.held;
-    this.index = attr.index;
+    this.obj_index = obj_index;
     this.images = attr.images;
     this.states = attr.states;
     this.update = attr.update;
@@ -101,6 +104,7 @@ function Sprite(attr) {
 
         ctx.strokeStyle = this.debugColor;
         ctx.strokeRect(this.x, this.y, this.width, this.height);
+        ctx.strokeRect(this.x, this.y + this.height - this.depth/2, this.width, this.depth);
         context.drawImage(anim.img, frame * this.width, 0, this.width, this.height, this.x, this.y, this.width, this.height);
     };
     //This is a pretty neat idea VV worth talking about
@@ -125,6 +129,7 @@ function Sprite(attr) {
 
     this._state = attr.state;
     this._frame = 0;
+    this._index = Math.round(this.y + this.height + this.depth/2);
     //this._idle = true;
 
 

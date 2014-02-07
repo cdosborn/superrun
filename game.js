@@ -18,14 +18,14 @@ function init() {
     REND.width = 240;
     REND.height= 160;
 
-    var super_run = new Sprite( {
+    super_run = new Sprite( {
         debugColor:"blue",
         x:canvas.width/2,
         y:canvas.height/2,
         width:11,
         height:16,
+        depth:2,
         flipped:false,
-        index:0,
         states: {stand: {img:_IMAGES['superrun'],start:0,last:0,repeat:true},
                  stand_flip: {img:_IMAGES['superrun_flip'],start:0,last:0,repeat:true},
                  walk: {img:_IMAGES['superrun'],start:0,last:5,repeat:true},
@@ -82,12 +82,13 @@ function init() {
             this.x += this.dx;
 
 
-            if (this.collide(SPRITES[9])){
+            if (this.collide(gate)){
                 this.debugColor = "red";
             } else {
                 this.debugColor = "blue";
             }
-
+            
+            this._index = Math.round(this.y + this.height + this.depth/2);
 
         }});
 
@@ -95,18 +96,20 @@ function init() {
         flipped:false,
         width:7,
         height:9,
-        index:0,
+        depth:1,
         states: {growing: {img:_IMAGES['flower'],start:0,repeat:false}},
         state: "growing",
-        update: function(){}, };
+        update: function(){
+            this._index = Math.round(this.y + this.height + this.depth/2);
+        }};
 
 
     var sheep_obj = {
         flipped:false,
         width:12,
         height:9,
+        depth:2,
         angst:1,
-        index:0,
         states: {stand: {img:_IMAGES['lamb'],start:0,last:0,repeat:true},
                  stand_flip: {img:_IMAGES['lamb_flip'],start:0,last:0,repeat:true},
                  walk: {img:_IMAGES['lamb'],start:0,last:3,repeat:true},
@@ -144,42 +147,56 @@ function init() {
 
             this.y += this.dy; 
             this.x += this.dx;
+
+            this._index = Math.round(this.y + this.height + this.depth/2);
         }};
 
-var gate = new Sprite( { 
-    x:112,
-    y:43,
-    width:25,
-    height:25,
-    state:"close",
-    index:0,
-    states: { open: {img:_IMAGES['gate'],start:0,repeat:false},
-              close:{img:_IMAGES['gate'],start:0,repeat:false,reverse:true}},
-    update: function() {
-        if (this.collide(SPRITES[0])) {
-            this.set_state("open");
-        } else {
-            this.set_state("close");
-        } 
-    }});
+    gate = new Sprite({ 
+         x:112,
+         y:43,
+         width:25,
+         height:25,
+         depth:2,
+         state:"close",
+         states: { open: {img:_IMAGES['gate'],start:0,repeat:false},
+                   close:{img:_IMAGES['gate'],start:0,repeat:false,reverse:true}},
+         update: function() {
+             if (this.collide(super_run)) {
+                 this.set_state("open");
+             } else {
+                 this.set_state("close");
+             } 
 
-    SPRITES.push(super_run);
+             if (this._state == "open") {
+                 this.depth = -18;
+             } else {
+                 this.depth = 2;
+             }
+             this._index = Math.round(this.y + this.height + this.depth/2);
+         }});
+
     for (var i = 0; i < NUM_SHEEP; i++) {
-        var flower = new Sprite(flower_obj);
-        var sheep = new Sprite(sheep_obj); 
+        SHEEP[i] = new Sprite(sheep_obj); 
         var rand1 = Math.floor(Math.random() * 10 - 5);
         var rand2 = Math.floor(Math.random() * 10 - 5);
-        sheep.x = rand1 + canvas.width/2;
-        sheep.y = rand2 + canvas.height/2;
-        sheep.angst = Math.floor(Math.random() * 2 + 1);
-        SPRITES.push(sheep);    
+        SHEEP[i].x = rand1 + canvas.width/2;
+        SHEEP[i].y = rand2 + canvas.height/2;
+        SHEEP[i].angst = Math.floor(Math.random() * 2 + 1);
+
         rand1 = Math.floor(Math.random() * canvas.width)
         rand2 = Math.floor(Math.random() * canvas.height)
-        flower.x = rand1;
-        flower.y = rand2;
-        SPRITES.push(flower);
+        FLOWERS[i] = new Sprite(flower_obj);
+        FLOWERS[i].x = rand1;
+        FLOWERS[i].y = rand2;
+
+        SPRITES.push(SHEEP[i]);
+        SPRITES.push(FLOWERS[i]);
     }
+
+    SPRITES.push(super_run);
     SPRITES.push(gate);
+
+
 
     bg();
 
@@ -193,8 +210,19 @@ var gate = new Sprite( {
 
 }
 
-function render(lastRender) {
-      requestAnimationFrame();
+function draw() {
+    SPRITES.sort(function(a, b) {
+        if (a._index < b._index) {
+            return -1;
+        } else if (a._index > b._index) {
+            return 1;
+        } else {
+            return 0;
+        }
+    });
+    for (var i = 0; i < SPRITES.length; i++) { 
+        SPRITES[i].draw();
+    } 
 }
 
 function update() {
@@ -225,9 +253,7 @@ function update() {
     ctx.translate(-VIEW.x, -VIEW.y);
     ctx.clearRect(REND.x,REND.y,REND.width,REND.height);
     ctx.drawImage(canvas_bg,REND.x,REND.y,REND.width,REND.height,REND.x,REND.y,REND.width,REND.height);
-    for (var i = 0; i < SPRITES.length; i++) { 
-        SPRITES[i].draw();
-    }
+    draw();
     ctx.drawImage(_IMAGES['fence_bottom'],9,54,102,14);
     ctx.restore();
 }
@@ -263,14 +289,14 @@ function printStats() {
 
 function setViewpoint(scale) {
 
-    REND.x = SPRITES[0].x - REND.width/2;
-    REND.y = SPRITES[0].y - REND.height/2;
+    REND.x = super_run.x - REND.width/2;
+    REND.y = super_run.y - REND.height/2;
 
     VIEW.width = canvas.width / Math.pow(2,scale - 1);
     VIEW.height = canvas.height / Math.pow(2,scale - 1);
 
-    VIEW.x = SPRITES[0].x - VIEW.width/2;
-    VIEW.y = SPRITES[0].y - VIEW.height/2
+    VIEW.x = super_run.x - VIEW.width/2;
+    VIEW.y = super_run.y - VIEW.height/2
 
     VIEW.x = Math.max(0,VIEW.x);
     VIEW.y = Math.max(0,VIEW.y);
