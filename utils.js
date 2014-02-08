@@ -1,7 +1,7 @@
 var canvas, canvas_bg, ctx, ctx_bg, super_run; 
-var NUM_SHEEP = 3;
+var NUM_SHEEP = 10;
 var DEBUG = false;
-var MINSCALE = 2;
+var MINSCALE = 1;
 var SCALE = 3;
 var KEYS_DOWN = {};
 var KEYS = {
@@ -36,13 +36,6 @@ var BOUNDS = [
     {x:0,y:320,width:480,height:10}
     ];
 
-
-var REND = {
-    x:0,
-    y:0,
-    width:0,
-    height:0
-};
 
 var VIEW = {
     x:0,
@@ -218,13 +211,13 @@ _IMAGES['fence_top'].src = 'images/fence_top.png';
 _IMAGES['fence_bottom'].src = 'images/fence_bottom.png';
 _IMAGES['fence_left'].src = 'images/fence_left.png';
 _IMAGES['fence_right'].src = 'images/fence_right.png';
+_IMAGES['flower'].src = 'images/floweranim.png';
 _IMAGES['gate'].src = 'images/gate.png';
-_IMAGES['superrun'].src = 'images/super.png';
-_IMAGES['superrun_flip'].src = 'images/superrs.png';
 _IMAGES['grass'].src = 'images/grass-bg.png';
 _IMAGES['lamb'].src = 'images/lamb.png';
 _IMAGES['lamb_flip'].src = 'images/lambrs.png';
-_IMAGES['flower'].src = 'images/floweranim.png';
+_IMAGES['superrun'].src = 'images/super.png';
+_IMAGES['superrun_flip'].src = 'images/superrs.png';
 
 function Sprite(attr, obj_index) {
     var me = this;

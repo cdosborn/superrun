@@ -15,9 +15,6 @@ function init() {
     ctx_bg.webkitImageSmoothingEnabled = false;
     ctx_bg.mozImageSmoothingEnabled = false;
 
-    REND.width = 240;
-    REND.height= 160;
-
     super_run = new Sprite( {
         debugColor:"blue",
         x:canvas.width/2,
@@ -288,8 +285,8 @@ function update() {
     setViewpoint(SCALE);
     ctx.save();
     ctx.translate(-VIEW.x, -VIEW.y);
-    ctx.clearRect(REND.x,REND.y,REND.width,REND.height);
-    ctx.drawImage(canvas_bg,REND.x,REND.y,REND.width,REND.height,REND.x,REND.y,REND.width,REND.height);
+    ctx.clearRect(VIEW.x,VIEW.y,VIEW.width,VIEW.height);
+    ctx.drawImage(canvas_bg,VIEW.x,VIEW.y,VIEW.width,VIEW.height,VIEW.x,VIEW.y,VIEW.width,VIEW.height);
     draw();
     ctx.drawImage(_IMAGES['fence_bottom'],9,54,102,14);
     ctx.restore();
@@ -326,9 +323,6 @@ function printStats() {
 
 function setViewpoint(scale) {
 
-    REND.x = super_run.x - REND.width/2;
-    REND.y = super_run.y - REND.height/2;
-
     VIEW.width = canvas.width / Math.pow(2,scale - 1);
     VIEW.height = canvas.height / Math.pow(2,scale - 1);
 
@@ -339,12 +333,6 @@ function setViewpoint(scale) {
     VIEW.y = Math.max(0,VIEW.y);
     VIEW.x = Math.min(VIEW.x, canvas.width - VIEW.width);
     VIEW.y = Math.min(VIEW.y, canvas.height - VIEW.height);
-
-    REND.x = Math.max(0,REND.x);
-    REND.y = Math.max(0,REND.y);
-    REND.x = Math.min(REND.x, canvas.width - REND.width);
-    REND.y = Math.min(REND.y, canvas.height - REND.height);
-
 }
 
 function safeMove(obj) {
