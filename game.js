@@ -63,11 +63,21 @@ function init() {
                 this.dy = Math.round(this.dy / 3);
             }
 
-            if (KEYS_DOWN[KEYS.SPACE]) {
+            if (KEYS_DOWN[KEYS.A]) {
                 var state = (!this.flipped) ? "pick_up" : "pick_up_flip";
                 this.set_state(state);
-                this.dx = this.dy = 0;
-            } else  if (this.dx > 0 || (this.dx == 0 && Math.abs(this.dy) > 0  && !this.flipped)) {
+                COLLIDER.collision(this, SHEEP, 
+                        function() {this.dx = this.dy = 0;}, 
+                        function() {
+                            this["held"] = true;
+                            super_run.carrying.push(this);
+                        });
+            } else if (KEYS_DOWN[KEYS.D]) {
+                var last = this.carrying.length - 1;
+                this.carrying[last]["held"] = false;
+                this.carrying[last].y += 4;
+                this.carrying.pop();
+            } else if (this.dx > 0 || (this.dx == 0 && Math.abs(this.dy) > 0  && !this.flipped)) {
                 this.set_state("walk");
             } else if (this.dx < 0 || (this.dx == 0 && Math.abs(this.dy) > 0 )) {
                 this.set_state("walk_flip");
@@ -82,11 +92,11 @@ function init() {
             this.x += this.dx;
 
 
-            if (this.collide(gate)){
-                this.debugColor = "red";
-            } else {
-                this.debugColor = "blue";
-            }
+//          if (this.collide(gate)){
+//              this.debugColor = "red";
+//          } else {
+//              this.debugColor = "blue";
+//          }
             
             this._index = Math.round(this.y + this.height + this.depth/2);
 
@@ -118,19 +128,21 @@ function init() {
                  walk_flip:{img:_IMAGES['lamb_flip'],start:0,last:3,repeat:true}},
         state: "stand",
         update: function() {
-            //generate 1:10 chance of switching states
+            //generate 0 - 99
             var rand = Math.floor(Math.random() * 100);
+            //determines if state changes 
             var change = rand % 10 == 0;
             var walking = this.dx != 0;
+            var held = (this.held == undefined) ? false : this.held;
             if (change) {
                 this.dx = this.dy = 0;
-                if (walking) {
+                if (walking) { //swap motion state, ex. walk -> stand
                     var state = (this.flipped) ? "stand_flip" : "stand"; 
                     this.set_state(state);
-                } else if (rand % 15 == 0) { //standing still change dir
+                } else if (rand % 15 == 0 && !held) { //swap direction, ex. flipped -> not flipped
                     var state = (!this.flipped) ? "stand_flip" : "stand"; 
                     this.set_state(state);
-                } else {
+                } else { //swap motion state, ex. stand -> walk
                     var state = (this.flipped) ? "walk_flip" : "walk"; 
                     this.set_state(state);
                     while (this.dx == 0 && this.dy == 0) {
@@ -145,8 +157,14 @@ function init() {
                 this.flipped = !(this._state == "walk" || this._state == "stand");
             }
 
-            this.y += this.dy; 
-            this.x += this.dx;
+            //sheep must be updated after super_run
+            if (held) {
+                this.y = super_run.y + 4;
+                this.x = super_run.x;
+            } else {
+                this.y += this.dy; 
+                this.x += this.dx;
+            }
 
             this._index = Math.round(this.y + this.height + this.depth/2);
         }};
@@ -196,7 +214,7 @@ function init() {
     SPRITES.push(super_run);
     SPRITES.push(gate);
 
-
+    super_run["carrying"] = [];
 
     bg();
 
@@ -226,8 +244,13 @@ function draw() {
 }
 
 function update() {
-    for (var i = 0; i < SPRITES.length; i++) { 
-        SPRITES[i].update();
+    super_run.update();
+    gate.update();
+    for (var i = 0; i < SHEEP.length; i++) { 
+        SHEEP[i].update();
+    }
+    for (var i = 0; i < SHEEP.length; i++) { 
+        FLOWERS[i].update();
     }
 
     //SCALING
@@ -243,7 +266,6 @@ function update() {
             ctx.scale(2,2);
         }
     }
-
 
     //ctx.strokeRect(VIEW.x, VIEW.y, VIEW.width, VIEW.height);
     //console.log("w: " + VIEW.width + ", h: " + VIEW.height + " x: " + VIEW.x + " y: " + VIEW.y + " scale: " + SCALE);

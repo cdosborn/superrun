@@ -1,7 +1,7 @@
 var canvas, canvas_bg, ctx, ctx_bg, super_run; 
-var NUM_SHEEP = 5;
+var NUM_SHEEP = 10;
 var DEBUG = false;
-var SCALE = 2;
+var SCALE = 3;
 var KEYS_DOWN = {};
 var KEYS = {
     SPACE:32,
@@ -10,6 +10,8 @@ var KEYS = {
     UP:38,
     DOWN:40,
     SHIFT:16,
+    A:65,
+    D:68,
     Z:90
 };
 var REND = {
@@ -29,6 +31,41 @@ var VIEW = {
 var SPRITES = [];
 var FLOWERS = [];
 var SHEEP = [];
+
+var COLLIDER = {
+    //returns collision:bool, side affects call objects with callbacks if collided
+    collision : function(first, objs, fst_callback, snd_callback) {
+        //if objs is not an array make it one
+        if (objs.constructor.name != "Array") { 
+            objs = [objs];
+        }
+
+        var once = false;
+        for (var i = 0; i < objs.length; i++) {
+            var second = objs[i];
+            var x1 = first.x;
+            var x2 = first.x + first.width;
+            var y1 = first.y;
+            var y2 = first.y + first.height;
+            var x3 = second.x;
+            var x4 = second.x + second.width;
+            var y3 = second.y;
+            var y4 = second.y + second.height;
+            var collided = ((x3 >= x1 && x3 <= x2) || (x4 >= x1 && x3 <= x2)) && ((y3 >= y1 && y3 <= y2) || (y4 >= y1 && y3 <= y2));
+            once = collided || once;
+            if (collided) {
+                if (fst_callback != undefined) {
+                    fst_callback.apply(first,fst_callback.arguments);
+                }
+                if (snd_callback != undefined) {
+                    snd_callback.apply(second,snd_callback.arguments);
+                }
+            }
+        }
+        return once;
+    }
+};
+
 
 function keyPressed(e) {
     KEYS_DOWN[e.keyCode] = true;
@@ -111,22 +148,14 @@ function Sprite(attr, obj_index) {
     };
     //This is a pretty neat idea VV worth talking about
     this.set_state = function(state) {
-        if (this._state != state) {
+        if (this._state != state) { //setting different state
             var anim = this.states[state];
             this._frame = anim.start;
             this._state = state;
         }
     };
     this.collide = function(other) {
-        var x1 = this.x;
-        var x2 = this.x + this.width;
-        var y1 = this.y;
-        var y2 = this.y + this.height;
-        var x3 = other.x;
-        var x4 = other.x + other.width;
-        var y3 = other.y;
-        var y4 = other.y + other.height;
-        return ((x3 >= x1 && x3 <= x2) || (x4 >= x1 && x3 <= x2)) && ((y3 >= y1 && y3 <= y2) || (y4 >= y1 && y3 <= y2))
+        return COLLIDER.collision(this,other);
     }
 
     this._state = attr.state;
@@ -136,8 +165,6 @@ function Sprite(attr, obj_index) {
 
 
 }
-
-
 
 var lambFrame=0;
 var gateFrame=3;

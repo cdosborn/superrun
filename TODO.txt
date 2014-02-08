@@ -9,6 +9,6 @@ remove "special numbers" ex. dx limit on super_run
 fluid scaling (always ends on even power scale)
 figure out if more efficient to have one fram animations set repeat to true or alternative?
 efficient drawing (ideally only draws when necessary)
-add scale specific features (zoomed in allows for sniffing flowers etc);
+add scale specific features (zoomed in allows for sniffing flowers etc)
 scenes
 dialog
