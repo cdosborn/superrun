@@ -1,6 +1,7 @@
 var canvas, canvas_bg, ctx, ctx_bg, super_run; 
-var NUM_SHEEP = 10;
+var NUM_SHEEP = 3;
 var DEBUG = false;
+var MINSCALE = 2;
 var SCALE = 3;
 var KEYS_DOWN = {};
 var KEYS = {
@@ -14,19 +15,41 @@ var KEYS = {
     D:68,
     Z:90
 };
+var BOUNDS = [
+    //left fence
+    {x:0,y:0,width:9,height:68},
+    //right fence
+    {x:136,y:0,width:9,height:68},
+    //back fence
+    {x:9,y:0,width:127,height:12},
+    //front fence
+    {x:9,y:56,width:102,height:12},
+    //behind gate
+    {x:131,y:45,width:5,height:23},
+    //left canvas
+    {x:-10,y:0,width:10,height:320},
+    //right canvas
+    {x:480,y:0,width:10,height:320},
+    //top canvas
+    {x:0,y:-10,width:480,height:10},
+    //bottom canvas
+    {x:0,y:320,width:480,height:10}
+    ];
+
+
 var REND = {
     x:0,
     y:0,
     width:0,
     height:0
-}
+};
 
 var VIEW = {
     x:0,
     y:0,
     width:0,
     height:0
-}
+};
 
 var SPRITES = [];
 var FLOWERS = [];
@@ -34,7 +57,7 @@ var SHEEP = [];
 
 var COLLIDER = {
     //returns collision:bool, side affects call objects with callbacks if collided
-    collision : function(first, objs, fst_callback, snd_callback) {
+    collision: function(first, objs, fst_callback, snd_callback) {
         //if objs is not an array make it one
         if (objs.constructor.name != "Array") { 
             objs = [objs];
@@ -63,7 +86,105 @@ var COLLIDER = {
             }
         }
         return once;
+    },
+    collide: function(first, second) {
+            var x1 = first.x + first.dx;
+            var x2 = first.x + first.dx + first.width;
+            var y1 = first.y + first.dy;
+            var y2 = first.y + first.dy + first.height;
+            var x3 = second.x;
+            var x4 = second.x + second.width;
+            var y3 = second.y;
+            var y4 = second.y + second.height;
+            //xLeft, xRight, yTop, yBottom
+            var xL = (x3 >= x1 && x3 <= x2);
+            var xM = (x1 >= x3 && x2 <= x4) || (x1 <= x3 && x2 >= x4);
+            var xR = (x4 >= x1 && x4 <= x2);
+            var yT = (y3 >= y1 && y3 <= y2);
+            var yM = (y1 >= y3 && y2 <= y4) || (y1 <= y3 && y2 >= y4);
+            var yB = (y4 > y1 && y4 < y2)
+            var both = (xL || xR || xM) && (yT || yB || yM);
+            if (both) {
+                if (xL && xR && yB && yT) {//9
+                    //center
+                } else if (xL && yM) {//4
+                    //left-center
+                    first.x = x3 - first.width; 
+                    first.y += first.dy;
+                } else if (xR && yM) {//5
+                    //right-center  
+                    first.x = x4; 
+                    first.y += first.dy;
+                } else if (xM && yT) { //2
+                    //up-center
+                    first.y = y3 - first.height;
+                    first.x += first.dx;
+                } else if (xM && yB) { //7
+                    ///bottom-center
+                    first.x += first.dx;
+                    first.y = y4; 
+                } else if (xL && yT)  { // 1
+                    console.log(1);
+                    //upper-left
+                    var xDif = x3 - (first.x + first.width);
+                    var yDif = y3 - (first.y + first.height);
+                    if (xDif > yDif) {
+                        first.x += xDif; 
+                        first.y += first.dy;
+                    } else if ( xDif < yDif) {
+                        first.y += yDif; 
+                        first.x += first.dx;
+                    } else {
+                        first.x += xDif; 
+                        first.y += yDif; 
+                    }
+                } else if (xR && yT)  { //3
+                    //upper-right
+                    var xDif = first.x - x4;
+                    var yDif = y3 - (first.y + first.height);
+                    if (xDif > yDif) {
+                        first.x -= xDif; 
+                        first.y += first.dy;
+                    } else if (xDif < yDif) {
+                        first.y += yDif; 
+                        first.x += first.dx;
+                    } else {
+                        first.x -= xDif; 
+                        first.y += yDif; 
+                    }
+                } else if (xL && yB) { //6
+                    //bottom-left
+                    var xDif = x3 - (first.x + first.width);
+                    var yDif = first.y - y4;
+                    if (xDif > yDif) {
+                        first.x += xDif; 
+                        first.y += first.dy;
+                    } else if ( xDif < yDif) {
+                        first.y -= yDif; 
+                        first.x += first.dx;
+                    } else {
+                        first.x += xDif; 
+                        first.y -= yDif; 
+                    }
+                } else { //8
+                    //bottom-right
+                    var xDif = first.x - x4;
+                    var yDif = first.y - y4;
+                    if (xDif > yDif) {
+                        first.x -= xDif; 
+                        first.y += first.dy;
+                    } else if ( xDif < yDif) {
+                        first.y -= yDif; 
+                        first.x += first.dx;
+                    } else {
+                        first.x -= xDif; 
+                        first.y -= yDif; 
+                    }
+                }
+            }
+            return both;
     }
+
 };
 
 
@@ -106,64 +227,80 @@ _IMAGES['lamb_flip'].src = 'images/lambrs.png';
 _IMAGES['flower'].src = 'images/floweranim.png';
 
 function Sprite(attr, obj_index) {
-    this.x = attr.x;
-    this.y = attr.y;
-    this.debugColor = "blue";
-    this.width = attr.width;
-    this.height = attr.height;
-    this.depth = attr.depth;
-    this.dx = 0;
-    this.dy = 0;
-    this.flipped = attr.flipped;
-    this.held = attr.held;
-    this.obj_index = obj_index;
-    this.images = attr.images;
-    this.states = attr.states;
-    this.update = attr.update;
-    this.draw = function(context) {
-        context = (context === undefined) ? ctx : context; 
-        var anim = this.states[this._state];
-        if (anim.last === undefined) {
-            anim.last = anim.img.width / this.width - 1;
+    var me = this;
+    me.x = attr.x;
+    me.y = attr.y;
+    me.debugColor = "blue";
+    me.width = attr.width;
+    me.height = attr.height;
+    me.depth = attr.depth;
+    me.getBoundingBox = function() {
+        return {
+            x:me.x, 
+            y:me.y + me.height - me.depth/2,
+            width:me.width,
+            height:me.depth
+        };
+    };
+    me.dx = 0;
+    me.dy = 0;
+    me.flipped = attr.flipped;
+    me.held = attr.held;
+    me.obj_index = obj_index;
+    me.images = attr.images;
+    me.states = attr.states;
+    me.update = attr.update;
+    me.draw = function(context) {
+        context = (context == undefined) ? ctx : context; 
+        var anim = me.states[me._state];
+        if (anim.seq != undefined) {
+            anim.last = anim.seq.length - 1;
+            anim.start = 0;
+        } else if (anim.last == undefined) {
+            anim.last = anim.img.width / me.width - 1;
+            //console.log(anim.last);
         }
-        if (this._frame != anim.last ) {
-            this._frame += 1;
+
+        if (me._frame != anim.last ) {
+            me._frame += 1;
         } else if (anim.repeat) {
-            this._frame = anim.start;
+            me._frame = anim.start;
         } 
 
         var frame;
         if (anim.reverse) {
-            frame = anim.last - this._frame;
+            frame = anim.last - me._frame;
         } else {
-            frame = this._frame;
+            frame = me._frame;
         }
 
         if (DEBUG) {
-            ctx.strokeStyle = this.debugColor;
-            ctx.strokeRect(this.x, this.y, this.width, this.height);
-            ctx.strokeRect(this.x, this.y + this.height - this.depth/2, this.width, this.depth);
+            ctx.strokeStyle = me.debugColor;
+            var box = me.getBoundingBox();
+            ctx.strokeRect(box.x, box.y, box.width, box.height);
         }
-        context.drawImage(anim.img, frame * this.width, 0, this.width, this.height, this.x, this.y, this.width, this.height);
+
+        // if frame sequence
+        if (anim.seq != undefined) {
+            frame = anim.seq[me._frame];
+        }
+        context.drawImage(anim.img, frame * me.width, 0, me.width, me.height, me.x, me.y, me.width, me.height);
     };
     //This is a pretty neat idea VV worth talking about
-    this.set_state = function(state) {
-        if (this._state != state) { //setting different state
-            var anim = this.states[state];
-            this._frame = anim.start;
-            this._state = state;
+    me.set_state = function(state) {
+        if (me._state != state) { //setting different state
+            var anim = me.states[state];
+            me._frame = anim.start;
+            me._state = state;
         }
     };
-    this.collide = function(other) {
-        return COLLIDER.collision(this,other);
+    me.collide = function(other) {
+        return COLLIDER.collision(me,other);
     }
 
-    this._state = attr.state;
-    this._frame = 0;
-    this._index = Math.round(this.y + this.height + this.depth/2);
-    //this._idle = true;
-
-
+    me._state = attr.state;
+    me._frame = 0;
+    me._index = Math.round(me.y + me.height + me.depth/2);
 }
 
 var lambFrame=0;
