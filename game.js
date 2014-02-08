@@ -36,26 +36,25 @@ function init() {
         update: function() {
             if (KEYS_DOWN[KEYS.LEFT] && this.dx > -4) {
                 this.dx--;
-            }
+            } 
             if (KEYS_DOWN[KEYS.RIGHT] && this.dx < 4) {
                 this.dx++;
             }
             if (KEYS_DOWN[KEYS.DOWN] && this.dy < 4) {
                 this.dy++;
-            }
-            if (KEYS_DOWN[KEYS.UP] && this.dy > -4) {
+            } else if (KEYS_DOWN[KEYS.UP] && this.dy > -4) {
                 this.dy--;
             }
 
             //On key change instantly head that direction
-            if (KEYS_DOWN[KEYS.LEFT] && this.dx > 0) {
+            if ((KEYS_DOWN[KEYS.RIGHT] && this.dx < 0) || ((KEYS_DOWN[KEYS.LEFT] && this.dx > 0))) {
                 this.dx *= -1;
-            }
-            if (KEYS_DOWN[KEYS.RIGHT] && this.dx < 0) {
-                this.dx *= -1;
-            }
+                console.log("headLeft " + this.dx);
+            } else if (KEYS_DOWN[KEYS.LEFT] && this.dx > 0) {
+                console.log("headRIght " + this.dx);
+            } 
 
-            // Decrease veolcity when keys not pressed or both pressed
+            // Decrease veolcity when keys not pressed or both pressed 
             if (!KEYS_DOWN[KEYS.RIGHT] && !KEYS_DOWN[KEYS.LEFT]) {
                 this.dx = Math.round(this.dx / 3);
             }
@@ -70,13 +69,21 @@ function init() {
                         function() {this.dx = this.dy = 0;}, 
                         function() {
                             this["held"] = true;
+                            //laying sheep are forced up
+                            if (this.flipped) { 
+                                this.set_state("walk_flip");
+                            } else {
+                                this.set_state("walk");
+                            }
                             super_run.carrying.push(this);
                         });
             } else if (KEYS_DOWN[KEYS.D]) {
                 var last = this.carrying.length - 1;
-                this.carrying[last]["held"] = false;
-                this.carrying[last].y += 4;
-                this.carrying.pop();
+                if (last > -1) {
+                    this.carrying[last]["held"] = false;
+                    this.carrying[last].y += 4;
+                    this.carrying.pop();
+                }
             } else if (this.dx > 0 || (this.dx == 0 && Math.abs(this.dy) > 0  && !this.flipped)) {
                 this.set_state("walk");
             } else if (this.dx < 0 || (this.dx == 0 && Math.abs(this.dy) > 0 )) {
@@ -88,9 +95,8 @@ function init() {
             }
 
             this.flipped = !(this._state == "walk" || this._state == "stand" || this._state == "pick_up");
-            this.y += this.dy; 
-            this.x += this.dx;
 
+            safeMove(this);
 
 //          if (this.collide(gate)){
 //              this.debugColor = "red";
@@ -123,26 +129,31 @@ function init() {
         states: {stand: {img:_IMAGES['lamb'],start:0,last:0,repeat:true},
                  stand_flip: {img:_IMAGES['lamb_flip'],start:0,last:0,repeat:true},
                  walk: {img:_IMAGES['lamb'],start:0,last:3,repeat:true},
-                 /*speak*/
-                 /*stand*/
-                 walk_flip:{img:_IMAGES['lamb_flip'],start:0,last:3,repeat:true}},
+                 walk_flip:{img:_IMAGES['lamb_flip'],start:0,last:3,repeat:true},
+                 lay: {img:_IMAGES['lamb'],seq:[4,5,6,7,8,9,9,9,9,8],start:0,repeat:false},
+                 lay_flip: {img:_IMAGES['lamb_flip'],seq:[4,5,6,7,8,9,9,9,9,8],start:0,repeat:false}},
         state: "stand",
         update: function() {
             //generate 0 - 99
             var rand = Math.floor(Math.random() * 100);
+            var rand2 = Math.floor(Math.random() * 100);
             //determines if state changes 
+            var reluctance = (this._state == "lay" || this._state == "lay_flip") ? rand2 % 25 : 1;
             var change = rand % 10 == 0;
-            var walking = this.dx != 0;
+            var walking = this._state == "walk" || this._state == "walk_flip";
             var held = (this.held == undefined) ? false : this.held;
             if (change) {
                 this.dx = this.dy = 0;
-                if (walking) { //swap motion state, ex. walk -> stand
+                if (walking) { // walk -> stand
                     var state = (this.flipped) ? "stand_flip" : "stand"; 
                     this.set_state(state);
-                } else if (rand % 15 == 0 && !held) { //swap direction, ex. flipped -> not flipped
+                } else if (rand % 15 == 0 )  { // flipped -> not flipped
                     var state = (!this.flipped) ? "stand_flip" : "stand"; 
                     this.set_state(state);
-                } else { //swap motion state, ex. stand -> walk
+                } else if (rand2 % 10 == 0 && this.angst == 1 && !held) {
+                    var state = (this.flipped) ? "lay_flip" : "lay"; 
+                    this.set_state(state);
+                } else { //swap motion state, ex. stand -> walk, stand -> lay
                     var state = (this.flipped) ? "walk_flip" : "walk"; 
                     this.set_state(state);
                     while (this.dx == 0 && this.dy == 0) {
@@ -154,16 +165,16 @@ function init() {
                         this.dy *= (Math.round(Math.random())) ? 1 : -1;
                     }
                 } 
-                this.flipped = !(this._state == "walk" || this._state == "stand");
+                //fix to be more efficient
+                this.flipped = !(this._state == "walk" || this._state == "stand" || this._state == "lay");
             }
-
+  
             //sheep must be updated after super_run
             if (held) {
                 this.y = super_run.y + 4;
                 this.x = super_run.x;
             } else {
-                this.y += this.dy; 
-                this.x += this.dx;
+                safeMove(this);
             }
 
             this._index = Math.round(this.y + this.height + this.depth/2);
@@ -241,6 +252,10 @@ function draw() {
     for (var i = 0; i < SPRITES.length; i++) { 
         SPRITES[i].draw();
     } 
+    for (var i = 0; i < BOUNDS.length && DEBUG; i++) { 
+        ctx.strokeRect(BOUNDS[i].x, BOUNDS[i].y, BOUNDS[i].width, BOUNDS[i].height);
+    } 
+
 }
 
 function update() {
@@ -255,7 +270,7 @@ function update() {
 
     //SCALING
     if (KEYS_DOWN[KEYS.SHIFT]) {
-        if (KEYS_DOWN[KEYS.Z] && SCALE > 2) {
+        if (KEYS_DOWN[KEYS.Z] && SCALE > MINSCALE) {
             SCALE--;
             ctx.restore();
         }
@@ -332,6 +347,16 @@ function setViewpoint(scale) {
 
 }
 
+function safeMove(obj) {
+    var hit;
+    for (var i = 0; i < BOUNDS.length && !hit; i++) {
+        hit = COLLIDER.collide(obj,BOUNDS[i]);
+    }
+    if (!hit) {
+        obj.x += obj.dx;
+        obj.y += obj.dy;
+    }
+}
 
 
 window.onload = init;
