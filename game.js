@@ -33,7 +33,7 @@ function init() {
         update: function() {
             if (KEYS_DOWN[KEYS.LEFT] && this.dx > -4) {
                 this.dx--;
-            } 
+            }
             if (KEYS_DOWN[KEYS.RIGHT] && this.dx < 4) {
                 this.dx++;
             }
@@ -43,18 +43,21 @@ function init() {
                 this.dy--;
             }
 
-            //On key change instantly head that direction
-            if ((KEYS_DOWN[KEYS.RIGHT] && this.dx < 0) || ((KEYS_DOWN[KEYS.LEFT] && this.dx > 0))) {
-                this.dx *= -1;
-            } else if (KEYS_DOWN[KEYS.LEFT] && this.dx > 0) {
-            } 
+            var both = KEYS_DOWN[KEYS.RIGHT] && KEYS_DOWN[KEYS.LEFT];
+            var left = KEYS_DOWN[KEYS.LEFT];
+            var right = KEYS_DOWN[KEYS.RIGHT];
 
+          //On key change instantly head that direction but not both pressed
+          if (((right && this.dx < 0) || (left && this.dx > 0)) && !both) {
+              this.dx *= -1;
+          } 
+              
             // Decrease veolcity when keys not pressed or both pressed 
-            if (!KEYS_DOWN[KEYS.RIGHT] && !KEYS_DOWN[KEYS.LEFT]) {
-                this.dx = Math.round(this.dx / 3);
+            if (!right && !left) {
+                this.dx = Math.round(this.dx / 4);
             }
             if (!KEYS_DOWN[KEYS.UP] && !KEYS_DOWN[KEYS.DOWN]) {
-                this.dy = Math.round(this.dy / 3);
+                this.dy = Math.round(this.dy / 4);
             }
 
             if (KEYS_DOWN[KEYS.A]) {
@@ -72,14 +75,15 @@ function init() {
                             }
                             super_run.carrying.push(this);
                         });
-            } else if (KEYS_DOWN[KEYS.D]) {
-                var last = this.carrying.length - 1;
-                if (last > -1) {
-                    this.carrying[last]["held"] = false;
-                    this.carrying[last].y += 4;
+            } else if (KEYS_DOWN[KEYS.D]) { //"D(ROP)"
+                var lamb = this.carrying[this.carrying.length - 1];
+                if (lamb != undefined) {
+                    lamb["held"] = false;
+                    lamb.y = super_run.y + super_run.height - lamb.height;
                     this.carrying.pop();
                 }
-            } else if (this.dx > 0 || (this.dx == 0 && Math.abs(this.dy) > 0  && !this.flipped)) {
+            } 
+            if (this.dx > 0 || (this.dx == 0 && Math.abs(this.dy) > 0  && !this.flipped)) {
                 this.set_state("walk");
             } else if (this.dx < 0 || (this.dx == 0 && Math.abs(this.dy) > 0 )) {
                 this.set_state("walk_flip");
@@ -98,8 +102,6 @@ function init() {
 //          } else {
 //              this.debugColor = "blue";
 //          }
-            
-            this._index = Math.round(this.y + this.height + this.depth/2);
 
         }});
 
@@ -111,7 +113,6 @@ function init() {
         states: {growing: {img:_IMAGES['flower'],start:0,repeat:false}},
         state: "growing",
         update: function(){
-            this._index = Math.round(this.y + this.height + this.depth/2);
         }};
 
 
@@ -166,13 +167,11 @@ function init() {
   
             //sheep must be updated after super_run
             if (held) {
-                this.y = super_run.y + 4;
-                this.x = super_run.x;
+                this.y = super_run.y + Math.round(Math.random() * 4);
+                this.x = super_run.x + Math.round(Math.random());
             } else {
                 safeMove(this);
             }
-
-            this._index = Math.round(this.y + this.height + this.depth/2);
         }};
 
     gate = new Sprite({ 
@@ -198,7 +197,6 @@ function init() {
              } else {
                  this.depth = 2;
              }
-             this._index = Math.round(this.y + this.height + this.depth/2);
          }});
 
    fence_bottom = new Sprite({ 
@@ -206,7 +204,7 @@ function init() {
          y:54,
          width:102,
          height:14,
-         depth:0,
+         depth:2,
          state:"idle",
          states: { idle: {img:_IMAGES['fence_bottom'],start:0,repeat:false}},
          update: function() {}}); 
@@ -249,9 +247,11 @@ function init() {
 
 function draw() {
     SPRITES.sort(function(a, b) {
-        if (a._index < b._index) {
+        var a = a.getIndex();
+        var b = b.getIndex();
+        if (a < b) {
             return -1;
-        } else if (a._index > b._index) {
+        } else if (a > b) {
             return 1;
         } else {
             return 0;

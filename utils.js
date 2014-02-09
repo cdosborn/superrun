@@ -23,7 +23,7 @@ var BOUNDS = [
   //back fence
   {x:9,y:12,width:127,height:1},
   //front fence
-  {x:9,y:67,width:102,height:1},
+  {x:9,y:68,width:102,height:2},
   //behind gate
   {x:127,y:50,width:8,height:9},
   //left canvas
@@ -315,7 +315,9 @@ function Sprite(attr, obj_index) {
     me.collide = function(other) {
         return COLLIDER.collision(me,other);
     }
-
+    me.getIndex = function() {
+        return Math.round(me.y + me.height + me.depth/2);
+    }
     me._state = attr.state;
     me._frame = 0;
     me._index = Math.round(me.y + me.height + me.depth/2);
