@@ -1,8 +1,10 @@
 var canvas, canvas_bg, ctx, ctx_bg, super_run; 
+var STARTX = 50;
+var STARTY = 25;
 var NUM_SHEEP = 25;
 var DEBUG = false;
 var MINSCALE = 1;
-var SCALE = 3;
+var SCALE = 2;
 var KEYS_DOWN = {};
 var KEYS = {
     SPACE:32,
@@ -23,7 +25,7 @@ var BOUNDS = [
   //back fence
   {x:9,y:12,width:127,height:1},
   //front fence
-  {x:9,y:68,width:102,height:2},
+  {x:0,y:68,width:111,height:1},
   //behind gate
   {x:127,y:50,width:8,height:9},
   //left canvas
@@ -291,12 +293,12 @@ function Sprite(attr, obj_index) {
             frame = me._frame;
         }
 
-        if (DEBUG) {
-            ctx.strokeStyle = me.debugColor;
-            var box = me.getBoundingBox();
-            ctx.strokeRect(box.x, box.y, box.width, box.height);
-            ctx.strokeRect(me.x, me.y, me.width, me.height);
-        }
+      //if (DEBUG) {
+      //    ctx.strokeStyle = me.debugColor;
+      //    var box = me.getBoundingBox();
+      //    ctx.strokeRect(box.x, box.y, box.width, box.height);
+      //    ctx.strokeRect(me.x, me.y, me.width, me.height);
+      //}
 
         // if frame sequence
         if (anim.seq != undefined) {

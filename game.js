@@ -17,8 +17,8 @@ function init() {
 
     super_run = new Sprite( {
         debugColor:"blue",
-        x:canvas.width/2,
-        y:canvas.height/2,
+        x:STARTX,
+        y:STARTY,
         width:11,
         height:16,
         depth:3,
@@ -186,10 +186,10 @@ function init() {
          update: function() {
              if (this.collide(super_run)) {
                  this.set_state("open");
-                 BOUNDS[3].width = 102;
+                 BOUNDS[3].width = 111;
              } else {
                  this.set_state("close");
-                 BOUNDS[3].width = 127;
+                 BOUNDS[3].width = 136;
              } 
 
              if (this._state == "open") {
@@ -263,9 +263,7 @@ function draw() {
     for (var i = 0; i < BOUNDS.length && DEBUG; i++) { 
         ctx.strokeRect(BOUNDS[i].x, BOUNDS[i].y, BOUNDS[i].width, BOUNDS[i].height);
     } 
-
 }
-
 function update() {
     super_run.update();
     gate.update();

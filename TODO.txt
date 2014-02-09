@@ -1,3 +1,4 @@
+improve how sprites are layered
 drop sheep on same level as bounding box
 proper layering for drawing, every sprite represented by 3d (w X h X d)
 precompute random values ??
@@ -15,3 +16,6 @@ change anim property repeat to be an index instead of a bool
 scenes
 dialog
 horizontally sliding gate**
+
+bugz
+bottom left corner of fence collison
