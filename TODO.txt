@@ -19,3 +19,8 @@ horizontally sliding gate**
 
 bugz
 bottom left corner of fence collison
+
+feature?
+flowers give player endurance to carry many sheep 
+sheep naturally wander to flowers
+
