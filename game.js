@@ -21,7 +21,7 @@ function init() {
         y:canvas.height/2,
         width:11,
         height:16,
-        depth:2,
+        depth:3,
         flipped:false,
         states: {stand: {img:_IMAGES['superrun'],start:0,last:0,repeat:true},
                  stand_flip: {img:_IMAGES['superrun_flip'],start:0,last:0,repeat:true},
@@ -46,9 +46,7 @@ function init() {
             //On key change instantly head that direction
             if ((KEYS_DOWN[KEYS.RIGHT] && this.dx < 0) || ((KEYS_DOWN[KEYS.LEFT] && this.dx > 0))) {
                 this.dx *= -1;
-                console.log("headLeft " + this.dx);
             } else if (KEYS_DOWN[KEYS.LEFT] && this.dx > 0) {
-                console.log("headRIght " + this.dx);
             } 
 
             // Decrease veolcity when keys not pressed or both pressed 
@@ -189,8 +187,10 @@ function init() {
          update: function() {
              if (this.collide(super_run)) {
                  this.set_state("open");
+                 BOUNDS[3].width = 102;
              } else {
                  this.set_state("close");
+                 BOUNDS[3].width = 127;
              } 
 
              if (this._state == "open") {
@@ -200,6 +200,16 @@ function init() {
              }
              this._index = Math.round(this.y + this.height + this.depth/2);
          }});
+
+   fence_bottom = new Sprite({ 
+         x:9,
+         y:54,
+         width:102,
+         height:14,
+         depth:0,
+         state:"idle",
+         states: { idle: {img:_IMAGES['fence_bottom'],start:0,repeat:false}},
+         update: function() {}}); 
 
     for (var i = 0; i < NUM_SHEEP; i++) {
         SHEEP[i] = new Sprite(sheep_obj); 
@@ -221,6 +231,7 @@ function init() {
 
     SPRITES.push(super_run);
     SPRITES.push(gate);
+    SPRITES.push(fence_bottom);
 
     super_run["carrying"] = [];
 
@@ -288,7 +299,6 @@ function update() {
     ctx.clearRect(VIEW.x,VIEW.y,VIEW.width,VIEW.height);
     ctx.drawImage(canvas_bg,VIEW.x,VIEW.y,VIEW.width,VIEW.height,VIEW.x,VIEW.y,VIEW.width,VIEW.height);
     draw();
-    ctx.drawImage(_IMAGES['fence_bottom'],9,54,102,14);
     ctx.restore();
 }
 
@@ -322,13 +332,10 @@ function printStats() {
 }
 
 function setViewpoint(scale) {
-
     VIEW.width = canvas.width / Math.pow(2,scale - 1);
     VIEW.height = canvas.height / Math.pow(2,scale - 1);
-
     VIEW.x = super_run.x - VIEW.width/2;
     VIEW.y = super_run.y - VIEW.height/2
-
     VIEW.x = Math.max(0,VIEW.x);
     VIEW.y = Math.max(0,VIEW.y);
     VIEW.x = Math.min(VIEW.x, canvas.width - VIEW.width);
@@ -337,13 +344,12 @@ function setViewpoint(scale) {
 
 function safeMove(obj) {
     var hit;
+    var move = {dx:obj.dx,dy:obj.dy};
     for (var i = 0; i < BOUNDS.length && !hit; i++) {
-        hit = COLLIDER.collide(obj,BOUNDS[i]);
+        COLLIDER.checkMove(obj,BOUNDS[i],move);
     }
-    if (!hit) {
-        obj.x += obj.dx;
-        obj.y += obj.dy;
-    }
+    obj.x += move.dx;
+    obj.y += move.dy;
 }
 
 

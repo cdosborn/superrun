@@ -1,3 +1,4 @@
+drop sheep on same level as bounding box
 proper layering for drawing, every sprite represented by 3d (w X h X d)
 precompute random values ??
 request animation frame
@@ -13,3 +14,4 @@ add scale specific features (zoomed in allows for sniffing flowers etc)
 change anim property repeat to be an index instead of a bool
 scenes
 dialog
+horizontally sliding gate**

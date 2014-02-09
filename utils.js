@@ -1,5 +1,5 @@
 var canvas, canvas_bg, ctx, ctx_bg, super_run; 
-var NUM_SHEEP = 10;
+var NUM_SHEEP = 25;
 var DEBUG = false;
 var MINSCALE = 1;
 var SCALE = 3;
@@ -16,26 +16,31 @@ var KEYS = {
     Z:90
 };
 var BOUNDS = [
-    //left fence
-    {x:0,y:0,width:9,height:68},
-    //right fence
-    {x:136,y:0,width:9,height:68},
-    //back fence
-    {x:9,y:0,width:127,height:12},
-    //front fence
-    {x:9,y:56,width:102,height:12},
-    //behind gate
-    {x:131,y:45,width:5,height:23},
-    //left canvas
-    {x:-10,y:0,width:10,height:320},
-    //right canvas
-    {x:480,y:0,width:10,height:320},
-    //top canvas
-    {x:0,y:-10,width:480,height:10},
-    //bottom canvas
-    {x:0,y:320,width:480,height:10}
-    ];
+  //left fence
+  {x:9,y:0,width:1,height:68},
+  //right fence
+  {x:136,y:0,width:8,height:68},
+  //back fence
+  {x:9,y:12,width:127,height:1},
+  //front fence
+  {x:9,y:67,width:102,height:1},
+  //behind gate
+  {x:127,y:50,width:8,height:9},
+  //left canvas
+  {x:-10,y:0,width:10,height:320},
+  //right canvas
+  {x:480,y:0,width:10,height:320},
+  //top canvas
+  {x:0,y:-10,width:480,height:10},
+  //bottom canvas
+  {x:0,y:320,width:480,height:10}
+];
 
+if (DEBUG) {
+    NUM_SHEEP = 0;
+    BOUNDS.push({x:100, y:100, width: 50, height:1});
+
+}
 
 var VIEW = {
     x:0,
@@ -80,11 +85,16 @@ var COLLIDER = {
         }
         return once;
     },
-    collide: function(first, second) {
-            var x1 = first.x + first.dx;
-            var x2 = first.x + first.dx + first.width;
-            var y1 = first.y + first.dy;
-            var y2 = first.y + first.dy + first.height;
+    checkMove: function(first, second, move) {
+            var bb = first.getBoundingBox();
+            var oldDx = move.dx;
+            var oldDy = move.dy;
+            var dx = first.dx;
+            var dy = first.dy;
+            var x1 = bb.x + move.dx;
+            var x2 = bb.x + move.dx + bb.width;
+            var y1 = bb.y + move.dy;
+            var y2 = bb.y + move.dy + bb.height;
             var x3 = second.x;
             var x4 = second.x + second.width;
             var y3 = second.y;
@@ -95,87 +105,101 @@ var COLLIDER = {
             var xR = (x4 >= x1 && x4 <= x2);
             var yT = (y3 >= y1 && y3 <= y2);
             var yM = (y1 >= y3 && y2 <= y4) || (y1 <= y3 && y2 >= y4);
-            var yB = (y4 > y1 && y4 < y2)
+            var yB = (y4 >= y1 && y4 <= y2);
             var both = (xL || xR || xM) && (yT || yB || yM);
+            var state = "";
+            x1 = bb.x;
+            x2 = bb.x + bb.width;
+            y1 = bb.y;
+            y2 = bb.y + bb.height;
+            xL = x1 < x3;
+            xM = (x1 >= x3 && x2 <= x4) || (x1 <= x3 && x2 >= x4);
+            xR = x2 > x4;
+            yT = y1 < y3;
+            yM = (y1 >= y3 && y2 <= y4) || (y1 <= y3 && y2 >= y4);
+            yB = y2 > y4;
+            //state += (xL) ? "xL " : "";
+            //state += (xR) ? "xR " : "";
+            //state += (xM) ? "xM " : "";
+            //state += (yT) ? "yT " : "";
+            //state += (yB) ? "yB " : "";
+            //state += (yM) ? "yM " : "";
+            //console.log(state);
+
             if (both) {
+                var xDif,yDif;
+                xDif = move.dx;
+                yDif = move.dy;
+
                 if (xL && xR && yB && yT) {//9
                     //center
+                    state += "9";
                 } else if (xL && yM) {//4
                     //left-center
-                    first.x = x3 - first.width; 
-                    first.y += first.dy;
+                    xDif = x3 - x2;
+                    state += "4";
                 } else if (xR && yM) {//5
                     //right-center  
-                    first.x = x4; 
-                    first.y += first.dy;
+                    xDif = x4 - x1;
+                    state += "5";
                 } else if (xM && yT) { //2
                     //up-center
-                    first.y = y3 - first.height;
-                    first.x += first.dx;
+                    yDif = y3 - y2;
+                    state += "2";
                 } else if (xM && yB) { //7
                     ///bottom-center
-                    first.x += first.dx;
-                    first.y = y4; 
+                    yDif = y4 - y1;
+                    state += "7";
                 } else if (xL && yT)  { // 1
-                    console.log(1);
                     //upper-left
-                    var xDif = x3 - (first.x + first.width);
-                    var yDif = y3 - (first.y + first.height);
-                    if (xDif > yDif) {
-                        first.x += xDif; 
-                        first.y += first.dy;
-                    } else if ( xDif < yDif) {
-                        first.y += yDif; 
-                        first.x += first.dx;
-                    } else {
-                        first.x += xDif; 
-                        first.y += yDif; 
-                    }
+                    state += "1";
+                    xDif = x3 - x2;
+                    yDif = y3 - y2;
                 } else if (xR && yT)  { //3
                     //upper-right
-                    var xDif = first.x - x4;
-                    var yDif = y3 - (first.y + first.height);
-                    if (xDif > yDif) {
-                        first.x -= xDif; 
-                        first.y += first.dy;
-                    } else if (xDif < yDif) {
-                        first.y += yDif; 
-                        first.x += first.dx;
-                    } else {
-                        first.x -= xDif; 
-                        first.y += yDif; 
-                    }
+                    state += "3";
+                    xDif = x4 - x1;
+                    yDif = y3 - y2;
                 } else if (xL && yB) { //6
+                    state += "6";
                     //bottom-left
-                    var xDif = x3 - (first.x + first.width);
-                    var yDif = first.y - y4;
-                    if (xDif > yDif) {
-                        first.x += xDif; 
-                        first.y += first.dy;
-                    } else if ( xDif < yDif) {
-                        first.y -= yDif; 
-                        first.x += first.dx;
-                    } else {
-                        first.x += xDif; 
-                        first.y -= yDif; 
-                    }
-                } else { //8
+                    xDif = x3 - x2;
+                    yDif = -(y1 - y4);
+                } else if (xR && yB) { //8
+                    state += "8";
                     //bottom-right
-                    var xDif = first.x - x4;
-                    var yDif = first.y - y4;
-                    if (xDif > yDif) {
-                        first.x -= xDif; 
-                        first.y += first.dy;
-                    } else if ( xDif < yDif) {
-                        first.y -= yDif; 
-                        first.x += first.dx;
-                    } else {
-                        first.x -= xDif; 
-                        first.y -= yDif; 
-                    }
+                    xDif = x4 - x1;
+                    yDif = -(y1 - y4);
                 }
+
+                var xDifAbs = Math.abs(xDif); 
+                var yDifAbs = Math.abs(yDif); 
+                var xOldDifAbs = Math.abs(oldDx); 
+                var yOldDifAbs = Math.abs(oldDy); 
+
+                if (xDifAbs > yDifAbs) {
+                    move.dy = yDif; 
+                } else if ( xDifAbs < yDifAbs) {
+                    move.dx = xDif; 
+                } else {
+                    move.dx = xDif; 
+                    move.dy = yDif; 
+                }
+
+                //console.log("y overlap " + yDif);
+                //console.log("x overlap " + xDif);
+
+                if (xDifAbs < xOldDifAbs) {
+                    move.dx = xDif;
+                }
+
+                if (yDifAbs < yOldDifAbs) {
+                    move.dy = yDif;
+                }
+                //console.log("dx " + move.dx);
+                //console.log("yx " + move.dy);
+
             }
-            return both;
     }
 
 };
@@ -271,6 +295,7 @@ function Sprite(attr, obj_index) {
             ctx.strokeStyle = me.debugColor;
             var box = me.getBoundingBox();
             ctx.strokeRect(box.x, box.y, box.width, box.height);
+            ctx.strokeRect(me.x, me.y, me.width, me.height);
         }
 
         // if frame sequence
