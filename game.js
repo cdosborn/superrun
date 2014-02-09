@@ -79,7 +79,6 @@ function init() {
                 var lamb = this.carrying[this.carrying.length - 1];
                 if (lamb != undefined) {
                     lamb["held"] = false;
-                    lamb.y = super_run.y + super_run.height - lamb.height;
                     this.carrying.pop();
                 }
             } 
