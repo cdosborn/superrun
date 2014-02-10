@@ -75,6 +75,20 @@ function init() {
                             }
                             super_run.carrying.push(this);
                         });
+
+                COLLIDER.collision(this, FLOWERS, 
+                        function() {this.dx = this.dy = 0;}, 
+                        function() {
+                            this["held"] = true;
+                            //laying sheep are forced up
+                            if (this.flipped) { 
+                                this.set_state("walk_flip");
+                            } else {
+                                this.set_state("walk");
+                            }
+                            super_run.carrying.push(this);
+                        });
+                
             } else if (KEYS_DOWN[KEYS.D]) { //"D(ROP)"
                 var lamb = this.carrying[this.carrying.length - 1];
                 if (lamb != undefined) {
@@ -112,6 +126,11 @@ function init() {
         states: {growing: {img:_IMAGES['flower'],start:0,repeat:false}},
         state: "growing",
         update: function(){
+            if (this.held == true) {
+                this.x = super_run.x + super_run.width/6;
+                this.y = super_run.y + super_run.height/4;
+            }
+
         }};
 
 
@@ -185,7 +204,7 @@ function init() {
          update: function() {
              if (this.collide(super_run)) {
                  this.set_state("open");
-                 BOUNDS[3].width = 111;
+                 BOUNDS[3].width = 105;
              } else {
                  this.set_state("close");
                  BOUNDS[3].width = 136;
@@ -245,7 +264,7 @@ function init() {
 }
 
 function draw() {
-    SPRITES.sort(function(a, b) {
+    SPRITES_INVIEW.sort(function(a, b) {
         var a = a.getIndex();
         var b = b.getIndex();
         if (a < b) {
@@ -256,21 +275,37 @@ function draw() {
             return 0;
         }
     });
-    for (var i = 0; i < SPRITES.length; i++) { 
-        SPRITES[i].draw();
+
+    for (var i = 0; i < SPRITES_INVIEW.length; i++) { 
+        SPRITES_INVIEW[i].draw();
     } 
+
+    console.log("num of sprites on screen " + SPRITES_INVIEW.length);
     for (var i = 0; i < BOUNDS.length && DEBUG; i++) { 
         ctx.strokeRect(BOUNDS[i].x, BOUNDS[i].y, BOUNDS[i].width, BOUNDS[i].height);
     } 
 }
 function update() {
     super_run.update();
+    SPRITES_INVIEW.push(super_run);
+    SPRITES_INVIEW.push(fence_bottom);
+
     gate.update();
+    if (inViewport(gate)) {
+        SPRITES_INVIEW.push(gate);
+    }
+
     for (var i = 0; i < SHEEP.length; i++) { 
         SHEEP[i].update();
+        if (inViewport(SHEEP[i])) {
+            SPRITES_INVIEW.push(SHEEP[i]);
+        }
     }
     for (var i = 0; i < SHEEP.length; i++) { 
         FLOWERS[i].update();
+        if (inViewport(FLOWERS[i])) {
+            SPRITES_INVIEW.push(FLOWERS[i]);
+        }
     }
 
     //SCALING
@@ -296,6 +331,8 @@ function update() {
     ctx.clearRect(VIEW.x,VIEW.y,VIEW.width,VIEW.height);
     ctx.drawImage(canvas_bg,VIEW.x,VIEW.y,VIEW.width,VIEW.height,VIEW.x,VIEW.y,VIEW.width,VIEW.height);
     draw();
+    //after draw sprites in view reset view
+    SPRITES_INVIEW.length = 0;
     ctx.restore();
 }
 
@@ -347,6 +384,13 @@ function safeMove(obj) {
     }
     obj.x += move.dx;
     obj.y += move.dy;
+}
+
+function inViewport(obj) {
+    setViewpoint(SCALE - 1);
+    var collide = COLLIDER.collision(obj, VIEW);
+    setViewpoint(SCALE);
+    return collide;
 }
 
 

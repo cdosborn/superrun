@@ -1,9 +1,9 @@
 var canvas, canvas_bg, ctx, ctx_bg, super_run; 
-var STARTX = 50;
-var STARTY = 25;
+var STARTX = 480/2;
+var STARTY = 320/2;
 var NUM_SHEEP = 25;
 var DEBUG = false;
-var MINSCALE = 2;
+var MINSCALE = 1;
 var SCALE = 2;
 var KEYS_DOWN = {};
 var KEYS = {
@@ -17,6 +17,8 @@ var KEYS = {
     D:68,
     Z:90
 };
+
+var SPRITES_INVIEW = [];
 var BOUNDS = [
   //left fence
   {x:9,y:0,width:1,height:68},
