@@ -247,8 +247,9 @@ _IMAGES['lamb_flip'].src = 'images/lambrs.png';
 _IMAGES['superrun'].src = 'images/super.png';
 _IMAGES['superrun_flip'].src = 'images/superrs.png';
 
-function Sprite(attr, obj_index) {
+function Sprite(attr) {
     var me = this;
+    me.type = attr.type;
     me.x = attr.x;
     me.y = attr.y;
     me.debugColor = "blue";
@@ -267,7 +268,6 @@ function Sprite(attr, obj_index) {
     me.dy = 0;
     me.flipped = attr.flipped;
     me.held = attr.held;
-    me.obj_index = obj_index;
     me.images = attr.images;
     me.states = attr.states;
     me.update = attr.update;

@@ -17,6 +17,7 @@ function init() {
 
     super_run = new Sprite( {
         debugColor:"blue",
+        type:"player",
         x:STARTX,
         y:STARTY,
         width:11,
@@ -80,19 +81,13 @@ function init() {
                         function() {this.dx = this.dy = 0;}, 
                         function() {
                             this["held"] = true;
-                            //laying sheep are forced up
-                            if (this.flipped) { 
-                                this.set_state("walk_flip");
-                            } else {
-                                this.set_state("walk");
-                            }
                             super_run.carrying.push(this);
                         });
                 
             } else if (KEYS_DOWN[KEYS.D]) { //"D(ROP)"
-                var lamb = this.carrying[this.carrying.length - 1];
-                if (lamb != undefined) {
-                    lamb["held"] = false;
+                var obj = this.carrying[this.carrying.length - 1];
+                if (obj != undefined) {
+                    obj["held"] = false;
                     this.carrying.pop();
                 }
             } 
@@ -119,6 +114,7 @@ function init() {
         }});
 
     var flower_obj = {
+        type:"flower",
         flipped:false,
         width:7,
         height:9,
@@ -127,14 +123,14 @@ function init() {
         state: "growing",
         update: function(){
             if (this.held == true) {
-                this.x = super_run.x + super_run.width/6;
+                this.x = super_run.x - super_run.width/6;
                 this.y = super_run.y + super_run.height/4;
             }
-
         }};
 
 
     var sheep_obj = {
+        type:"sheep",
         flipped:false,
         width:12,
         height:9,
@@ -193,6 +189,7 @@ function init() {
         }};
 
     gate = new Sprite({ 
+         type:"fence",
          x:112,
          y:43,
          width:25,
@@ -218,6 +215,7 @@ function init() {
          }});
 
    fence_bottom = new Sprite({ 
+         type:"fence",
          x:9,
          y:54,
          width:102,
@@ -263,8 +261,12 @@ function init() {
 
 }
 
-function draw() {
-    SPRITES_INVIEW.sort(function(a, b) {
+function sortRules(a, b) {
+   if (a.type == "flower" && a.held) {
+        return 1;
+   } else if (b.type == "flower" && b.held) {
+       return -1; 
+   } else { 
         var a = a.getIndex();
         var b = b.getIndex();
         if (a < b) {
@@ -274,7 +276,11 @@ function draw() {
         } else {
             return 0;
         }
-    });
+   }
+}
+
+function draw() {
+    SPRITES_INVIEW.sort(sortRules);
 
     for (var i = 0; i < SPRITES_INVIEW.length; i++) { 
         SPRITES_INVIEW[i].draw();
