@@ -1,26 +1,26 @@
-improve how sprites are layered
+Todo:
+horizontally sliding gate**
 drop sheep on same level as bounding box
-proper layering for drawing, every sprite represented by 3d (w X h X d)
 precompute random values ??
 request animation frame
-add sprite ability to delete oneself (flowers)
 add sprite expiration method (after x time or smthng)
-add console input ability
-each sprite has a clear method that erases its bounding_box 
+each sprite has a clear method that erases its bounding_box (calculate at what point its better to erase entire view)
 remove "special numbers" ex. dx limit on super_run
 fluid scaling (always ends on even power scale)
 figure out if more efficient to have one fram animations set repeat to true or alternative?
-efficient drawing (ideally only draws when necessary)
-add scale specific features (zoomed in allows for sniffing flowers etc)
 change anim property repeat to be an index instead of a bool
 scenes
 dialog
-horizontally sliding gate**
 
-bugz
+Bugz:
 bottom left corner of fence collison
 
-feature?
+Feature?
+add scale specific features (zoomed in allows for sniffing flowers etc)
+day and night cycle based off local time!
 flowers give player endurance to carry many sheep 
+add console input ability
 sheep naturally wander to flowers
 
+Completed
+proper layering for drawing, every sprite represented by 3d (w X h X d)
