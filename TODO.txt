@@ -16,7 +16,7 @@ Bugz:
 bottom left corner of fence collison
 
 Feature?
-add scale specific features (zoomed in allows for sniffing flowers etc)
+add scale specific features (zoomed in allows for sniffing flowers, entering buildings)
 day and night cycle based off local time!
 flowers give player endurance to carry many sheep 
 add console input ability
