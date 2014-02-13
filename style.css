@@ -52,7 +52,11 @@ a {
     z-index: 4;
 }
 
-p, span, a
+a:hover  {
+    color:black;
+}
+
+p, span
 {
     font-weight:300;
     opacity:1.0;
