@@ -46,16 +46,17 @@ body {
 
 a {
     bottom: 0.5em;
-    color: rgb(68, 68, 68);
+    color:#444;
     font-weight: 300;
     z-index: 4;
 }
 
 #back {
     font-size:1.5em;
-    color:#775DC3;
     top:2em;
+    height:1em;
     margin-left:-1.5em;
+    color:#775DC3;
     position:absolute;
     text-decoration:none;
 }
