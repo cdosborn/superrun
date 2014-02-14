@@ -1,14 +1,13 @@
 canvas {
-    display:block;
     border:1px solid;
     margin-top: 1em;
     margin-bottom: 1em;
 
 }
 #about {
-    width: 30em;
-    padding: 2em;
-    margin: 0px auto;
+    width: 27em;
+    margin: 0 auto;
+    padding-left:3em;
 }
 
 * {
@@ -25,7 +24,7 @@ html {
 }
 
 body {
-    margin:0px;
+   margin:0px;
    font-size:110%;
 }
 
@@ -58,13 +57,10 @@ a {
     top:2em;
     margin-left:-1.5em;
     position:absolute;
-}
-
-#nav a {
     text-decoration:none;
 }
 
-a:hover, #cdosborn  {
+a:hover, #back:hover {
     color:black;
 }
 
