@@ -52,7 +52,11 @@ a {
     z-index: 4;
 }
 
-a:hover  {
+#nav a {
+    text-decoration:none;
+}
+
+a:hover, #cdosborn  {
     color:black;
 }
 
