@@ -52,6 +52,14 @@ a {
     z-index: 4;
 }
 
+#back {
+    font-size:1.5em;
+    color:#775DC3;
+    top:2em;
+    margin-left:-1.5em;
+    position:absolute;
+}
+
 #nav a {
     text-decoration:none;
 }
@@ -64,7 +72,7 @@ p, span
 {
     font-weight:300;
     opacity:1.0;
-    animation: fadein 3s;
+/*  animation: fadein 3s; */
     -moz-animation: fadein 3s; /* Firefox */
     -webkit-animation: fadein 3s; /* Safari and Chrome */
     -o-animation: fadein 3s; /* Opera */
