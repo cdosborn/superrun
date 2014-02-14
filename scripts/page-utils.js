@@ -1,14 +1,9 @@
+var NUM_POSTS = 5;
+var text = "";
+var rest = "";
+var span;
+var p;
 function git_comments () {
-    var NUM_POSTS = 5;
-    var text = "";
-    var rest = "";
-    var p = document.getElementById("git-commits");
-    var span;
-    
-    function more() {
-        p.innerHTML = text + rest;
-    };
-    
     (function() {
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function() {
@@ -32,6 +27,7 @@ function git_comments () {
                     }
                  }
             }
+            p = document.getElementById("git-commits");
             p.innerHTML = text + "<span id=\"expand\" onclick=\"more()\">...</span>";
         }
         
@@ -39,6 +35,10 @@ function git_comments () {
         xmlhttp.send();
     })();
 }
+
+function more() {
+    p.innerHTML = text + rest;
+};
 
 var google_analytics = function () {
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){ (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o), m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) })(window,document,'script','//www.google-analytics.com/analytics.js','ga'); 
