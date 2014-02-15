@@ -289,7 +289,9 @@ function draw() {
     for (var i = 0; i < BOUNDS.length && DEBUG; i++) { 
         ctx.strokeRect(BOUNDS[i].x, BOUNDS[i].y, BOUNDS[i].width, BOUNDS[i].height);
     } 
+    darkenViewBy(DARKNESS);
 }
+
 function update() {
     super_run.update();
     SPRITES_INVIEW.push(super_run);
@@ -327,7 +329,8 @@ function update() {
         }
     }
 
-    //ctx.strokeRect(VIEW.x, VIEW.y, VIEW.width, VIEW.height);
+    setDaytime(CUR_HOUR);
+        //ctx.strokeRect(VIEW.x, VIEW.y, VIEW.width, VIEW.height);
     //console.log("w: " + VIEW.width + ", h: " + VIEW.height + " x: " + VIEW.x + " y: " + VIEW.y + " scale: " + SCALE);
     
     setViewpoint(SCALE);
@@ -347,6 +350,33 @@ function clear() {
     // Will always clear the right space
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.restore();
+}
+
+function darkenViewBy(x) {
+    var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    for (var i = 0; i < imageData.data.length;i) {
+            imageData.data[i] = colorShift(imageData.data[i], x, DEG_OF_DARK); 
+            i++;
+            imageData.data[i] = colorShift(imageData.data[i], x, DEG_OF_DARK); 
+            i++;
+            imageData.data[i] = colorShift(imageData.data[i], x, DEG_OF_DARK); 
+            i+=2;
+    }
+    ctx.putImageData(imageData,0,0);
+}
+
+function colorShift(pixelValue, degree, maxDegree) { 
+    var dif = 0;
+    var inc = 0;
+    var shift = 0;
+    if (degree > 0) { 
+        dif = 255 - pixelValue;
+    } else {
+        dif = pixelValue;
+    } 
+    inc = dif/maxDegree;
+    shift = inc * degree;
+    return pixelValue + shift;
 }
 
 function bg() {
@@ -378,6 +408,17 @@ function setViewpoint(scale) {
     VIEW.y = Math.max(0,VIEW.y);
     VIEW.x = Math.min(VIEW.x, canvas.width - VIEW.width);
     VIEW.y = Math.min(VIEW.y, canvas.height - VIEW.height);
+}
+
+function setDaytime(hour) {
+    hour = (hour == undefined) ? TODAY.getHours() : Math.min(Math.max(hour, 0), 23); 
+    if (hour < 7) {
+        DARKNESS = -(MAX_DARK - hour);
+    } else if (hour > 15) { 
+        DARKNESS = -(hour - 16);
+    } else { 
+        DARKNESS = 0;
+    }
 }
 
 function safeMove(obj) {

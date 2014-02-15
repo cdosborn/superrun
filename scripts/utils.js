@@ -1,9 +1,14 @@
 var canvas, canvas_bg, ctx, ctx_bg, super_run; 
+var DARKNESS = 0;
+var DEG_OF_DARK = 10;
+var MAX_DARK = 8;
+var TODAY = new Date();
+var CUR_HOUR = undefined;
 var STARTX = 480/2;
 var STARTY = 320/2;
 var NUM_SHEEP = 25;
 var DEBUG = false;
-var MINSCALE = 2;
+var MINSCALE = 1;
 var SCALE = 2;
 var KEYS_DOWN = {};
 var KEYS = {
@@ -214,6 +219,7 @@ function keyPressed(e) {
     if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
         e.preventDefault();
     }
+    console.log(e.keyCode);
 };
 
 function keyReleased(e) {
@@ -235,17 +241,21 @@ var _IMAGES = {
     flower: new Image()
 };
 
-_IMAGES['fence_top'].src = 'images/fence_top.png';
-_IMAGES['fence_bottom'].src = 'images/fence_bottom.png';
-_IMAGES['fence_left'].src = 'images/fence_left.png';
-_IMAGES['fence_right'].src = 'images/fence_right.png';
-_IMAGES['flower'].src = 'images/floweranim.png';
-_IMAGES['gate'].src = 'images/gate.png';
-_IMAGES['grass'].src = 'images/grass-bg.png';
-_IMAGES['lamb'].src = 'images/lamb.png';
-_IMAGES['lamb_flip'].src = 'images/lambrs.png';
-_IMAGES['superrun'].src = 'images/super.png';
-_IMAGES['superrun_flip'].src = 'images/superrs.png';
+for (var i = 0; i < _IMAGES.length; i++) {
+    _IMAGES[i].crossOrigin = "Anonymous";
+}
+
+_IMAGES['fence_top'].src =      'images/fence_top.png';
+_IMAGES['fence_bottom'].src =   'images/fence_bottom.png';
+_IMAGES['fence_left'].src =     'images/fence_left.png';
+_IMAGES['fence_right'].src =    'images/fence_right.png';
+_IMAGES['flower'].src =         'images/floweranim.png';
+_IMAGES['gate'].src =           'images/gate.png';
+_IMAGES['grass'].src =          'images/grass-bg.png';
+_IMAGES['lamb'].src =           'images/lamb.png';
+_IMAGES['lamb_flip'].src =      'images/lambrs.png';
+_IMAGES['superrun'].src =       'images/super.png';
+_IMAGES['superrun_flip'].src =  'images/superrs.png';
 
 function Sprite(attr) {
     var me = this;
