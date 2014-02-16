@@ -169,47 +169,54 @@ function game() {
         height:9,
         depth:4,
         angst:1,
-        states: {stand: {img:_IMAGES['lamb'],start:0,last:0,repeat:true},
-                 stand_flip: {img:_IMAGES['lamb_flip'],start:0,last:0,repeat:true},
-                 walk: {img:_IMAGES['lamb'],start:0,last:3,repeat:true},
-                 walk_flip:{img:_IMAGES['lamb_flip'],start:0,last:3,repeat:true},
-                 lay: {img:_IMAGES['lamb'],seq:[4,5,6,7,8,9,9,9,9,8],start:0,repeat:false},
-                 lay_flip: {img:_IMAGES['lamb_flip'],seq:[4,5,6,7,8,9,9,9,9,8],start:0,repeat:false}},
+        states: {stand: {img:_IMAGES['lamb'],start:0,last:0,repeat:true, flip:"stand_flip"},
+                 stand_flip: {img:_IMAGES['lamb_flip'],start:0,last:0,repeat:true, flip:"stand"},
+                 walk: {img:_IMAGES['lamb'],start:0,last:3,repeat:true, flip:"walk_flip"},
+                 walk_flip:{img:_IMAGES['lamb_flip'],start:0,last:3,repeat:true, flip:"walk"},
+                 lay: {img:_IMAGES['lamb'],seq:[4,5,6,7,8,9,9,9,9,8],start:0,repeat:false, flip:"lay_flip"},
+                 lay_flip: {img:_IMAGES['lamb_flip'],seq:[4,5,6,7,8,9,9,9,9,8],start:0,repeat:false, flip:"lay"}},
         state: "stand",
         update: function() {
+            var walking = this._state == "walk" || this._state == "walk_flip";
+            var standing = this._state == "stand" || this._state == "stand_flip";
+            var laying = this._state == "lay" || this._state == "lay_flip";
+
             //generate 0 - 99
             var rand = Math.floor(Math.random() * 100);
             var rand2 = Math.floor(Math.random() * 100);
             //determines if state changes 
-            var reluctance = (this._state == "lay" || this._state == "lay_flip") ? rand2 % 25 : 1;
-            var change = rand % 10 == 0;
-            var walking = this._state == "walk" || this._state == "walk_flip";
+            var reluctance = ((CUR_HOUR > 19 || CUR_HOUR < 5)) ? -5 : 0;
+            reluctance += (laying) ? -9 : 0;
+            var percent = 10 + reluctance;
+            var change = chance(percent);
             var held = (this.held == undefined) ? false : this.held;
+
             if (change) {
                 this.dx = this.dy = 0;
-                if (walking) { // walk -> stand
-                    var state = (this.flipped) ? "stand_flip" : "stand"; 
-                    this.set_state(state);
-                } else if (rand % 15 == 0 )  { // flipped -> not flipped
-                    var state = (!this.flipped) ? "stand_flip" : "stand"; 
-                    this.set_state(state);
-                } else if (rand2 % 10 == 0 && this.angst == 1 && !held) {
-                    var state = (this.flipped) ? "lay_flip" : "lay"; 
-                    this.set_state(state);
-                } else { //swap motion state, ex. stand -> walk, stand -> lay
-                    var state = (this.flipped) ? "walk_flip" : "walk"; 
-                    this.set_state(state);
-                    while (this.dx == 0 && this.dy == 0) {
-                        this.dx = Math.round(Math.random()) * this.angst;
-                        this.dy = Math.round(Math.random()) * this.angst;
+                var dir = (this.flipped) ? -1 : 1;
+                var state = "";
+                if (walking || laying) { // walk || lay -> stand
+                    state = (this.flipped) ? "stand_flip" : "stand"; 
+                } else { // stand -> walk || lay
+                    var changeDir = chance(50);
+                    if (changeDir) {this.flip()}
+                    if (chance(70)) { //switch motion
+                        state = (this.flipped) ? "walk_flip" : "walk"; 
+                        this.dx += (chance(50))? this.angst * dir : 0;
+                        this.dy += (chance(50))? this.angst * dir : 0;
+                        if (this.dx == 0 && this.dy == 0) {
+                            state = (this.flipped) ? "stand_flip" : "stand"; 
+                        }
+                    } else { //30 percent
+                        state = (this.flipped) ? "lay_flip" : "lay"; 
                     }
-                    if (this.flipped) {
+                    if (changeDir) { //switch direction 
                         this.dx *= -1;
-                        this.dy *= (Math.round(Math.random())) ? 1 : -1;
+                        this.dy *= (chance(50))? -1 : 1;
                     }
-                } 
-                //fix to be more efficient
-                this.flipped = !(this._state == "walk" || this._state == "stand" || this._state == "lay");
+
+                }
+                this.set_state(state);
             }
   
             //sheep must be updated after super_run
@@ -267,7 +274,7 @@ function game() {
         rand2 = Math.floor(Math.random() * 10 - 5);
         SHEEP[i].x = rand1 + canvas.width/2;
         SHEEP[i].y = rand2 + canvas.height/2;
-        SHEEP[i].angst = Math.floor(Math.random() * 2 + 1);
+        SHEEP[i].angst = (Math.random() * 2)|0 + 1;
         SPRITES.push(SHEEP[i]);
     }
 
@@ -454,8 +461,7 @@ function setViewpoint(scale) {
 }
 
 function setDaytime(hour) {
-    var date = new Date();
-    hour = (hour == undefined) ? 24 - date.getTimezoneOffset()/60 + date.getUTCHours() : Math.min(Math.max(hour, 0), 23); 
+    hour = (hour == undefined) ? getLocalTime() : Math.min(Math.max(hour, 0), 23); 
     if (hour < 7) {
         DARKNESS = -(MAX_DARK - hour);
     } else if (hour > 15) { 

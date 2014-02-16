@@ -6,8 +6,7 @@ var MAX_DARK = 8;
 var FIREFLY_LOCUS_X = Math.floor(Math.random() * 480);
 var FIREFLY_LOCUS_Y = Math.floor(Math.random() * 320);
 
-var TODAY = new Date();
-var CUR_HOUR = 24 - TODAY.getTimezoneOffset()/60 + TODAY.getUTCHours();
+var CUR_HOUR = getLocalTime();
 var STARTX = 480/2;
 var STARTY = 320/2;
 var NUM_SHEEP = 25;
@@ -339,6 +338,13 @@ function Sprite(attr) {
             me._state = state;
         }
     };
+    me.flip = function() {
+        var anim = me.states[me._state];
+        if (anim.hasOwnProperty("flip")) {
+            me.set_state(anim.flip);
+        }
+        me.flipped = !me.flipped;
+    }
     me.collide = function(other) {
         return COLLIDER.collision(me,other);
     }
@@ -351,23 +357,25 @@ function Sprite(attr) {
     me.states["ignore"] = {};
 }
 
-var lambFrame=0;
-var gateFrame=3;
-var superFrame=0;
-var superKneelFrame=6;
+function getLocalTime() {
+    var date = new Date();
+    var hour = date.getUTCHours() - date.getTimezoneOffset()/60;
+    return (hour < 0) ? 24 + hour : hour;
+}
 
-var currentlyFlipped = false;
-var lambFlipped = false;
-var openGate = false;
-var moving = false;
-var kneeling = false;
-var lambIsAttached = false;
-var x = 100;
-var y = 100;
-var lambX = 200;
-var lambY = 100;
-var dx = 0;
-var dy = 0;
-var distX=0;
-var distY=0;
-var sector;
+//takes a percentage and rolls the dice
+function chance(percentage) {
+    var rand = (Math.random() * 100)|0;
+    return rand < percentage;
+}
+
+//move to tests file
+function testChance(per, n) {
+    var sum = 0;
+    for(var i = 0; i < n; i++) {
+       if (chance(per)) {
+           sum++;
+       } 
+    }
+    console.log("tested " + per + "% chance " + n + " times: " + (sum / n * 100) + "%");
+}
