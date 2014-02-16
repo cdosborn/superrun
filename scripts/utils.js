@@ -2,14 +2,21 @@ var canvas, canvas_bg, ctx, ctx_bg, super_run;
 var DARKNESS = 0;
 var DEG_OF_DARK = 10;
 var MAX_DARK = 8;
+//locus is the center point they revolve around
+var FIREFLY_LOCUS_X = Math.floor(Math.random() * 480);
+var FIREFLY_LOCUS_Y = Math.floor(Math.random() * 320);
+
 var TODAY = new Date();
-var CUR_HOUR = undefined;
+var CUR_HOUR = 24 - TODAY.getTimezoneOffset()/60 + TODAY.getUTCHours();
 var STARTX = 480/2;
 var STARTY = 320/2;
 var NUM_SHEEP = 25;
+var NUM_FLOWERS = 25;
+var NUM_FIREFLYS = 10;
 var DEBUG = false;
 var MINSCALE = 1;
 var SCALE = 2;
+
 var KEYS_DOWN = {};
 var KEYS = {
     SPACE:32,
@@ -46,6 +53,7 @@ var BOUNDS = [
 ];
 
 if (DEBUG) {
+    CUR_HOUR = undefined;
     NUM_SHEEP = 0;
     BOUNDS.push({x:100, y:100, width: 50, height:1});
 
@@ -61,6 +69,7 @@ var VIEW = {
 var SPRITES = [];
 var FLOWERS = [];
 var SHEEP = [];
+var FIREFLYS = [];
 
 var COLLIDER = {
     //returns collision:bool, side affects call objects with callbacks if collided
@@ -219,7 +228,6 @@ function keyPressed(e) {
     if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
         e.preventDefault();
     }
-    console.log(e.keyCode);
 };
 
 function keyReleased(e) {
@@ -238,7 +246,8 @@ var _IMAGES = {
     grass: new Image(),
     lamb: new Image(),
     lamb_flip: new Image(),
-    flower: new Image()
+    flower: new Image(),
+    firefly: new Image()
 };
 
 for (var i = 0; i < _IMAGES.length; i++) {
@@ -249,6 +258,7 @@ _IMAGES['fence_top'].src =      'images/fence_top.png';
 _IMAGES['fence_bottom'].src =   'images/fence_bottom.png';
 _IMAGES['fence_left'].src =     'images/fence_left.png';
 _IMAGES['fence_right'].src =    'images/fence_right.png';
+_IMAGES['firefly'].src =        'images/firefly.png';
 _IMAGES['flower'].src =         'images/floweranim.png';
 _IMAGES['gate'].src =           'images/gate.png';
 _IMAGES['grass'].src =          'images/grass-bg.png';
@@ -282,6 +292,9 @@ function Sprite(attr) {
     me.states = attr.states;
     me.update = attr.update;
     me.draw = function(context) {
+        if (me._state == "ignore") {
+            return;
+        }
         context = (context == undefined) ? ctx : context; 
         var anim = me.states[me._state];
         if (anim.seq != undefined) {
@@ -322,7 +335,7 @@ function Sprite(attr) {
     me.set_state = function(state) {
         if (me._state != state) { //setting different state
             var anim = me.states[state];
-            me._frame = anim.start;
+            me._frame = (state == "ignore") ? undefined : anim.start;
             me._state = state;
         }
     };
@@ -335,6 +348,7 @@ function Sprite(attr) {
     me._state = attr.state;
     me._frame = 0;
     me._index = Math.round(me.y + me.height + me.depth/2);
+    me.states["ignore"] = {};
 }
 
 var lambFrame=0;

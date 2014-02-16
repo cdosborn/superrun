@@ -27,9 +27,7 @@ function game() {
         states: {stand: {img:_IMAGES['superrun'],start:0,last:0,repeat:true},
                  stand_flip: {img:_IMAGES['superrun_flip'],start:0,last:0,repeat:true},
                  walk: {img:_IMAGES['superrun'],start:0,last:5,repeat:true},
-                 walk_flip:{img:_IMAGES['superrun_flip'],start:0,last:5,repeat:true},
-                 pick_up:{img:_IMAGES['superrun'],start:6,repeat:false},
-                 pick_up_flip:{img:_IMAGES['superrun_flip'],start:6,repeat:false}},
+                 walk_flip:{img:_IMAGES['superrun_flip'],start:0,last:5,repeat:true}},
         state: "stand",
         update: function() {
             if (KEYS_DOWN[KEYS.LEFT] && this.dx > -4) {
@@ -62,10 +60,8 @@ function game() {
             }
 
             if (KEYS_DOWN[KEYS.A]) {
-                var state = (!this.flipped) ? "pick_up" : "pick_up_flip";
-                this.set_state(state);
                 COLLIDER.collision(this, SHEEP, 
-                        function() {this.dx = this.dy = 0;}, 
+                        function() {}, 
                         function() {
                             this["held"] = true;
                             //laying sheep are forced up
@@ -77,8 +73,15 @@ function game() {
                             super_run.carrying.push(this);
                         });
 
+                COLLIDER.collision(this, FIREFLYS, 
+                        function() {}, 
+                        function() {
+                            this["held"] = true;
+                            super_run.carrying.push(this);
+                        });
+
                 COLLIDER.collision(this, FLOWERS, 
-                        function() {this.dx = this.dy = 0;}, 
+                        function() {}, 
                         function() {
                             this["held"] = true;
                             super_run.carrying.push(this);
@@ -101,7 +104,7 @@ function game() {
                 this.set_state("stand_flip");
             }
 
-            this.flipped = !(this._state == "walk" || this._state == "stand" || this._state == "pick_up");
+            this.flipped = !(this._state == "walk" || this._state == "stand");
 
             safeMove(this);
 
@@ -128,6 +131,36 @@ function game() {
             }
         }};
 
+    var firefly_obj = {
+        type:"firefly",
+        flipped:false,
+        width:2,
+        height:1,
+        depth:1,
+        states: {flying: {img:_IMAGES['firefly'],start:0,repeat:true}},
+        state: "flying",
+        update: function(){
+            if (CUR_HOUR > 20 || CUR_HOUR < 3) {
+                this.set_state("flying");
+            } else { 
+                this.set_state("ignore");
+                return;
+            } 
+
+            var rand = (Math.random() * 10)|0;
+            var chance = (rand % 3 == 0);
+
+            if (this.held == true) {
+                    this.x = super_run.x - super_run.width/6;
+                    this.y = super_run.y + super_run.height/4;
+            } else if (chance) {
+                this.x += ((Math.random() * 5)|0) * (FIREFLY_LOCUS_X > this.x) ? 1 : -1;;
+                this.y += ((Math.random() * 5)|0) * (FIREFLY_LOCUS_Y > this.y) ? 1 : -1;
+            } else {
+                this.x += (Math.random() * 10 - 5)|0;
+                this.y += (Math.random() * 10 - 5)|0;
+            }
+        }};
 
     var sheep_obj = {
         type:"sheep",
@@ -225,25 +258,37 @@ function game() {
          states: { idle: {img:_IMAGES['fence_bottom'],start:0,repeat:false}},
          update: function() {}}); 
 
+
+    SPRITES.push(super_run);
+    var rand1, rand2;
     for (var i = 0; i < NUM_SHEEP; i++) {
         SHEEP[i] = new Sprite(sheep_obj); 
-        var rand1 = Math.floor(Math.random() * 10 - 5);
-        var rand2 = Math.floor(Math.random() * 10 - 5);
+        rand1 = Math.floor(Math.random() * 10 - 5);
+        rand2 = Math.floor(Math.random() * 10 - 5);
         SHEEP[i].x = rand1 + canvas.width/2;
         SHEEP[i].y = rand2 + canvas.height/2;
         SHEEP[i].angst = Math.floor(Math.random() * 2 + 1);
+        SPRITES.push(SHEEP[i]);
+    }
 
+    for (var i = 0; i < NUM_FLOWERS; i++) {
         rand1 = Math.floor(Math.random() * canvas.width)
         rand2 = Math.floor(Math.random() * canvas.height)
         FLOWERS[i] = new Sprite(flower_obj);
         FLOWERS[i].x = rand1;
         FLOWERS[i].y = rand2;
-
-        SPRITES.push(SHEEP[i]);
         SPRITES.push(FLOWERS[i]);
     }
 
-    SPRITES.push(super_run);
+    for (var i = 0; i < NUM_FIREFLYS; i++) {
+        FIREFLYS[i] = new Sprite(firefly_obj);
+        rand1 = Math.floor(Math.random() * canvas.width)
+        rand2 = Math.floor(Math.random() * canvas.height)
+        FIREFLYS[i].x = rand1;
+        FIREFLYS[i].y = rand2;
+        SPRITES.push(FIREFLYS[i]);
+    }
+
     SPRITES.push(gate);
     SPRITES.push(fence_bottom);
 
@@ -281,7 +326,6 @@ function sortRules(a, b) {
 
 function draw() {
     SPRITES_INVIEW.sort(sortRules);
-
     for (var i = 0; i < SPRITES_INVIEW.length; i++) { 
         SPRITES_INVIEW[i].draw();
     } 
@@ -289,29 +333,19 @@ function draw() {
     for (var i = 0; i < BOUNDS.length && DEBUG; i++) { 
         ctx.strokeRect(BOUNDS[i].x, BOUNDS[i].y, BOUNDS[i].width, BOUNDS[i].height);
     } 
+
     darkenViewBy(DARKNESS);
+    for (var i = 0; i < FIREFLYS.length && (CUR_HOUR > 19 || CUR_HOUR < 5); i++) { 
+        FIREFLYS[i].draw();
+    }
+
 }
 
 function update() {
-    super_run.update();
-    SPRITES_INVIEW.push(super_run);
-    SPRITES_INVIEW.push(fence_bottom);
-
-    gate.update();
-    if (inViewport(gate)) {
-        SPRITES_INVIEW.push(gate);
-    }
-
-    for (var i = 0; i < SHEEP.length; i++) { 
-        SHEEP[i].update();
-        if (inViewport(SHEEP[i])) {
-            SPRITES_INVIEW.push(SHEEP[i]);
-        }
-    }
-    for (var i = 0; i < SHEEP.length; i++) { 
-        FLOWERS[i].update();
-        if (inViewport(FLOWERS[i])) {
-            SPRITES_INVIEW.push(FLOWERS[i]);
+    for (var i = 0; i < SPRITES.length; i++) { 
+        SPRITES[i].update();
+        if (inViewport(SPRITES[i])) {
+            SPRITES_INVIEW.push(SPRITES[i]);
         }
     }
 
@@ -328,6 +362,15 @@ function update() {
             ctx.scale(2,2);
         }
     }
+
+    var avgX = 0;
+    var avgY = 0;
+    for (var i = 0; i < FIREFLYS.length; i++) {
+        avgX += FIREFLYS[i].x;
+        avgY += FIREFLYS[i].y;
+    }
+    FIREFLY_LOCUS_X = avgX / FIREFLYS.length;
+    FIREFLY_LOCUS_Y = avgY / FIREFLYS.length;
 
     setDaytime(CUR_HOUR);
         //ctx.strokeRect(VIEW.x, VIEW.y, VIEW.width, VIEW.height);
@@ -411,7 +454,8 @@ function setViewpoint(scale) {
 }
 
 function setDaytime(hour) {
-    hour = (hour == undefined) ? TODAY.getHours() : Math.min(Math.max(hour, 0), 23); 
+    var date = new Date();
+    hour = (hour == undefined) ? 24 - date.getTimezoneOffset()/60 + date.getUTCHours() : Math.min(Math.max(hour, 0), 23); 
     if (hour < 7) {
         DARKNESS = -(MAX_DARK - hour);
     } else if (hour > 15) { 
