@@ -142,12 +142,12 @@ function game() {
                 return;
             } 
 
-            var chance = chance(30);
+            var follow = chance(30);
 
             if (this.held == true) {
                     this.x = super_run.x - super_run.width/6;
                     this.y = super_run.y + super_run.height/4;
-            } else if (chance) {
+            } else if (follow) {
                 this.x += ((Math.random() * 5)|0) * (FIREFLY_LOCUS_X > this.x) ? 1 : -1;
                 this.y += ((Math.random() * 5)|0) * (FIREFLY_LOCUS_Y > this.y) ? 1 : -1;
             } else {
