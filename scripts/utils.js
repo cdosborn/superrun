@@ -285,6 +285,7 @@ function Sprite(attr) {
     };
     me.dx = 0;
     me.dy = 0;
+    me.boid = attr.boid;
     me.flipped = attr.flipped;
     me.held = attr.held;
     me.images = attr.images;

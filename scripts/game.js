@@ -8,8 +8,8 @@ function game() {
     ctx.mozImageSmoothingEnabled = false;
 
     canvas_bg = document.createElement("canvas");
-    canvas_bg.width = 640;
-    canvas_bg.height = 480;
+    canvas_bg.width = 480;
+    canvas_bg.height = 320;
     ctx_bg = canvas_bg.getContext("2d");
     ctx_bg.imageSmoothingEnabled = false;
     ctx_bg.webkitImageSmoothingEnabled = false;
@@ -107,13 +107,6 @@ function game() {
             this.flipped = !(this._state == "walk" || this._state == "stand");
 
             safeMove(this);
-
-//          if (this.collide(gate)){
-//              this.debugColor = "red";
-//          } else {
-//              this.debugColor = "blue";
-//          }
-
         }});
 
     var flower_obj = {
@@ -137,24 +130,25 @@ function game() {
         width:2,
         height:1,
         depth:1,
+        boid:{group:FIREFLYS, x:0, y:0},
         states: {flying: {img:_IMAGES['firefly'],start:0,repeat:true}},
         state: "flying",
         update: function(){
             if (CUR_HOUR > 20 || CUR_HOUR < 3) {
                 this.set_state("flying");
             } else { 
+                //inefficient
                 this.set_state("ignore");
                 return;
             } 
 
-            var rand = (Math.random() * 10)|0;
-            var chance = (rand % 3 == 0);
+            var chance = chance(30);
 
             if (this.held == true) {
                     this.x = super_run.x - super_run.width/6;
                     this.y = super_run.y + super_run.height/4;
             } else if (chance) {
-                this.x += ((Math.random() * 5)|0) * (FIREFLY_LOCUS_X > this.x) ? 1 : -1;;
+                this.x += ((Math.random() * 5)|0) * (FIREFLY_LOCUS_X > this.x) ? 1 : -1;
                 this.y += ((Math.random() * 5)|0) * (FIREFLY_LOCUS_Y > this.y) ? 1 : -1;
             } else {
                 this.x += (Math.random() * 10 - 5)|0;
@@ -169,6 +163,7 @@ function game() {
         height:9,
         depth:4,
         angst:1,
+        boid:{group:SHEEP, x:0, y:0},
         states: {stand: {img:_IMAGES['lamb'],start:0,last:0,repeat:true, flip:"stand_flip"},
                  stand_flip: {img:_IMAGES['lamb_flip'],start:0,last:0,repeat:true, flip:"stand"},
                  walk: {img:_IMAGES['lamb'],start:0,last:3,repeat:true, flip:"walk_flip"},
@@ -349,12 +344,7 @@ function draw() {
 }
 
 function update() {
-    for (var i = 0; i < SPRITES.length; i++) { 
-        SPRITES[i].update();
-        if (inViewport(SPRITES[i])) {
-            SPRITES_INVIEW.push(SPRITES[i]);
-        }
-    }
+
 
     //SCALING
     if (KEYS_DOWN[KEYS.SHIFT]) {
@@ -370,6 +360,18 @@ function update() {
         }
     }
 
+    super_run.update();
+    SPRITES_INVIEW.push(super_run);
+    setViewpoint();
+
+    for (var i = 1; i < SPRITES.length; i++) { 
+        SPRITES[i].update();
+        if (inViewport(SPRITES[i])) {
+            SPRITES_INVIEW.push(SPRITES[i]);
+        }
+    }
+
+
     var avgX = 0;
     var avgY = 0;
     for (var i = 0; i < FIREFLYS.length; i++) {
@@ -383,13 +385,11 @@ function update() {
         //ctx.strokeRect(VIEW.x, VIEW.y, VIEW.width, VIEW.height);
     //console.log("w: " + VIEW.width + ", h: " + VIEW.height + " x: " + VIEW.x + " y: " + VIEW.y + " scale: " + SCALE);
     
-    setViewpoint(SCALE);
     ctx.save();
     ctx.translate(-VIEW.x, -VIEW.y);
     ctx.clearRect(VIEW.x,VIEW.y,VIEW.width,VIEW.height);
     ctx.drawImage(canvas_bg,VIEW.x,VIEW.y,VIEW.width,VIEW.height,VIEW.x,VIEW.y,VIEW.width,VIEW.height);
     draw();
-    //after draw sprites in view reset view
     SPRITES_INVIEW.length = 0;
     ctx.restore();
 }
@@ -445,11 +445,12 @@ function returnRandX() {
 }
 
 function printStats() {
-    console.log("dx:" + dx + " dy:" + dy + (_DIRECTION.LEFT ? " <" : " >"));
+    //console.log("dx:" + dx + " dy:" + dy + (_DIRECTION.LEFT ? " <" : " >"));
     console.log("num of sprites on screen " + SPRITES_INVIEW.length);
 }
 
 function setViewpoint(scale) {
+    scale = (scale == undefined) ? SCALE : scale;
     VIEW.width = canvas.width / Math.pow(2,scale - 1);
     VIEW.height = canvas.height / Math.pow(2,scale - 1);
     VIEW.x = super_run.x - VIEW.width/2;
@@ -482,8 +483,6 @@ function safeMove(obj) {
 }
 
 function inViewport(obj) {
-    setViewpoint(SCALE - 1);
     var collide = COLLIDER.collision(obj, VIEW);
-    setViewpoint(SCALE);
     return collide;
 }
