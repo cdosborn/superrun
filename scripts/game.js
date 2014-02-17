@@ -142,7 +142,7 @@ function game() {
                 return;
             } 
 
-            var follow = chance(30);
+            var follow = chance(60);
 
             if (this.held == true) {
                     this.x = super_run.x - super_run.width/6;
