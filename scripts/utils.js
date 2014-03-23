@@ -6,7 +6,7 @@ var MAX_DARK = 8;
 var FIREFLY_LOCUS_X = Math.floor(Math.random() * 480);
 var FIREFLY_LOCUS_Y = Math.floor(Math.random() * 320);
 
-var CUR_HOUR = getLocalTime();
+var CUR_HOUR = 10; //getLocalTime();
 var STARTX = 480/2;
 var STARTY = 320/2;
 var NUM_SHEEP = 25;
@@ -81,29 +81,32 @@ var COLLIDER = {
         var once = false;
         for (var i = 0; i < objs.length; i++) {
             var second = objs[i];
-            var x1 = first.x;
-            var x2 = first.x + first.width;
-            var y1 = first.y;
-            var y2 = first.y + first.height;
-            var x3 = second.x;
-            var x4 = second.x + second.width;
-            var y3 = second.y;
-            var y4 = second.y + second.height;
-            var collided = ((x3 >= x1 && x3 <= x2) || (x4 >= x1 && x3 <= x2)) && ((y3 >= y1 && y3 <= y2) || (y4 >= y1 && y3 <= y2));
-            once = collided || once;
-            if (collided) {
-                if (fst_callback != undefined) {
-                    fst_callback.apply(first,fst_callback.arguments);
-                }
-                if (snd_callback != undefined) {
-                    snd_callback.apply(second,snd_callback.arguments);
+            //ignores collision between picked up objs
+            if (second.holder != first) {
+                var x1 = first.x;
+                var x2 = first.x + first.width;
+                var y1 = first.y;
+                var y2 = first.y + first.height;
+                var x3 = second.x;
+                var x4 = second.x + second.width;
+                var y3 = second.y;
+                var y4 = second.y + second.height;
+                var collided = ((x3 >= x1 && x3 <= x2) || (x4 >= x1 && x3 <= x2)) && ((y3 >= y1 && y3 <= y2) || (y4 >= y1 && y3 <= y2));
+                once = collided || once;
+                if (collided) {
+                    if (fst_callback != undefined) {
+                        fst_callback.apply(first,fst_callback.arguments);
+                    }
+                    if (snd_callback != undefined) {
+                        snd_callback.apply(second,snd_callback.arguments);
+                    }
                 }
             }
         }
         return once;
     },
     checkMove: function(first, second, move) {
-            var bb = first.getBoundingBox();
+            var bb = (first.getBoundingBox != undefined)? first.getBoundingBox() : first;
             var oldDx = move.dx;
             var oldDy = move.dy;
             var dx = first.dx;
@@ -246,12 +249,10 @@ var _IMAGES = {
     lamb: new Image(),
     lamb_flip: new Image(),
     flower: new Image(),
-    firefly: new Image()
+    firefly: new Image(),
+    dinosaur_stand: new Image(),
+    dinosaur_walk: new Image()
 };
-
-for (var i = 0; i < _IMAGES.length; i++) {
-    _IMAGES[i].crossOrigin = "Anonymous";
-}
 
 _IMAGES['fence_top'].src =      'images/fence_top.png';
 _IMAGES['fence_bottom'].src =   'images/fence_bottom.png';
@@ -265,12 +266,20 @@ _IMAGES['lamb'].src =           'images/lamb.png';
 _IMAGES['lamb_flip'].src =      'images/lambrs.png';
 _IMAGES['superrun'].src =       'images/super.png';
 _IMAGES['superrun_flip'].src =  'images/superrs.png';
+_IMAGES['dinosaur_stand'].src = 'images/trex-stand.png';
+_IMAGES['dinosaur_walk'].src =  'images/trex-walk.png';
 
 function Sprite(attr) {
     var me = this;
     me.type = attr.type;
     me.x = attr.x;
     me.y = attr.y;
+    if (attr.head) {
+        me.head = attr.head;
+    }
+    if (attr.target) {
+        me.target = attr.target;
+    }
     me.debugColor = "blue";
     me.width = attr.width;
     me.height = attr.height;
@@ -283,11 +292,11 @@ function Sprite(attr) {
             height:me.depth
         };
     };
-    me.dx = 0;
-    me.dy = 0;
+    me.dx = (attr.dx == undefined)? 0 : attr.dx;
+    me.dy = (attr.dy == undefined)? 0 : attr.dy;
     me.boid = attr.boid;
     me.flipped = attr.flipped;
-    me.held = attr.held;
+    me.holder = attr.holder;
     me.images = attr.images;
     me.states = attr.states;
     me.update = attr.update;
@@ -318,7 +327,7 @@ function Sprite(attr) {
             frame = me._frame;
         }
 
-      //if (DEBUG) {
+      //if (true) {
       //    ctx.strokeStyle = me.debugColor;
       //    var box = me.getBoundingBox();
       //    ctx.strokeRect(box.x, box.y, box.width, box.height);
@@ -335,6 +344,10 @@ function Sprite(attr) {
     me.set_state = function(state) {
         if (me._state != state) { //setting different state
             var anim = me.states[state];
+            if (anim == undefined) {
+                console.log(me.type);
+                console.log(state);
+            }
             me._frame = (state == "ignore") ? undefined : anim.start;
             me._state = state;
         }
@@ -379,4 +392,68 @@ function testChance(per, n) {
        } 
     }
     console.log("tested " + per + "% chance " + n + " times: " + (sum / n * 100) + "%");
+}
+
+//returns smallest signed distance between two rects
+//if second comes before first horizontally dx < 0
+function distanceBetween(first, second) {
+    var x1,x2,x3,x4,y1,y2,y3,y4;
+    var xL,xM,xR,yB,yM,yT;
+    //xLeft, xRight, yTop, yBottom
+    x1 = first.x;
+    x2 = first.x + first.width;
+    y1 = first.y;
+    y2 = first.y + first.height;
+    x3 = second.x;
+    x4 = second.x + second.width;
+    y3 = second.y;
+    y4 = second.y + second.height;
+    xL = x1 < x3;
+    xM = (x1 >= x3 && x2 <= x4) || (x1 <= x3 && x2 >= x4);
+    xR = x2 > x4;
+    yT = y1 < y3;
+    yM = (y1 >= y3 && y2 <= y4) || (y1 <= y3 && y2 >= y4);
+    yB = y2 > y4;
+    both = (xL || xR || xM) && (yT || yB || yM);
+
+    var xDif = 0, yDif = 0;
+
+    if (xL && xR && yB && yT) {//9
+        //center
+    } else if (xL && yM) {//4
+        //left-center
+        xDif = x3 - x2;
+    } else if (xR && yM) {//5
+        //right-center  
+        xDif = x4 - x1;
+    } else if (xM && yT) { //2
+        //up-center
+        yDif = y3 - y2;
+    } else if (xM && yB) { //7
+        ///bottom-center
+        yDif = y4 - y1;
+    } else if (xL && yT)  { // 1
+        //upper-left
+        xDif = x3 - x2;
+        yDif = y3 - y2;
+    } else if (xR && yT)  { //3
+        //upper-right
+        xDif = x4 - x1;
+        yDif = y3 - y2;
+    } else if (xL && yB) { //6
+        //bottom-left
+        xDif = x3 - x2;
+        yDif = -(y1 - y4);
+    } else if (xR && yB) { //8
+        //bottom-right
+        xDif = x4 - x1;
+        yDif = -(y1 - y4);
+    }
+
+    //console.log("dx: " + xDif + " dy: " + yDif);
+     
+    return {
+        dx:xDif,
+        dy:yDif
+    }
 }
