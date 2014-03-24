@@ -251,7 +251,8 @@ var _IMAGES = {
     flower: new Image(),
     firefly: new Image(),
     dinosaur_stand: new Image(),
-    dinosaur_walk: new Image()
+    dinosaur_walk: new Image(),
+    dinosaur_eat: new Image()
 };
 
 _IMAGES['fence_top'].src =      'images/fence_top.png';
@@ -268,6 +269,7 @@ _IMAGES['superrun'].src =       'images/super.png';
 _IMAGES['superrun_flip'].src =  'images/superrs.png';
 _IMAGES['dinosaur_stand'].src = 'images/trex-stand.png';
 _IMAGES['dinosaur_walk'].src =  'images/trex-walk.png';
+_IMAGES['dinosaur_eat'].src =  'images/trex-eat.png';
 
 function Sprite(attr) {
     var me = this;

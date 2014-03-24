@@ -1,3 +1,4 @@
+var dinosaur;
 function game() {
     document.addEventListener('keydown', keyPressed, false);
     document.addEventListener('keyup', keyReleased, false); 
@@ -119,8 +120,8 @@ function game() {
         state: "growing",
         update: function(){
             if (this.holder != null) {
-                this.x = this.holder.x - this.holder.width/6;
-                this.y = this.holder.y + this.holder.height/4;
+                this.x = this.holder.x + this.holder.width/2 - 7
+                this.y = this.holder.y + this.holder.height/2 - 4;
             }
         }};
 
@@ -222,7 +223,7 @@ function game() {
             }
         }};
 
-    var dinosaur = new Sprite({
+    dinosaur = new Sprite({
         type:"dinosaur",
         flipped:false,
         angst: 5,
@@ -236,36 +237,51 @@ function game() {
         states: {stand_flip: {img:_IMAGES['dinosaur_stand'],start:0,last:5,repeat:true, flip:"stand_flip"},
                  stand: {img:_IMAGES['dinosaur_stand'],start:6,repeat:true, flip:"stand"},
                  walk_flip: {img:_IMAGES['dinosaur_walk'],start:0,last:5,repeat:true, flip:"walk_flip"},
-                 walk: {img:_IMAGES['dinosaur_walk'],start:6, repeat:true, flip:"walk"}},
+                 walk: {img:_IMAGES['dinosaur_walk'],start:6, repeat:true, flip:"walk"},
+                 eat_flip: {img:_IMAGES['dinosaur_eat'],start:0,last:10, repeat:false, flip:"eat"},
+                 eat: {img:_IMAGES['dinosaur_eat'],start:10, repeat:false, flip:"eat_flip"}},
         state: "stand",
         update: function() {
             var walking = this._state == "walk" || this._state == "walk_flip";
             var standing = this._state == "stand" || this._state == "stand_flip";
-            this.flipped = this._state == "walk_flip" || this._state == "stand_flip";
+            var eating = this._state == "eat" || this._state == "eat_flip";
+            this.flipped = this._state == "walk_flip" || this._state == "stand_flip" || this._state == "eat_flip";
 
-            //determines if state changes 
-            var change = chance(10);
-            
-            this.head.x = (this.flipped)? this.x - 1: this.x + 76 + 1;
-            this.head.y = this.y + this.height - 20;
-            var inbetweenHeads = false;
+            cx = this.x + this.width/2; 
+            this.head.x = (this.flipped)? cx - 30: cx;
+            this.head.y = this.y + this.height - 18;
+            var bbx = this.getBoundingBox(), inbetweenHeads;
+            if (this.target != null) {
+                var x1 = this.target.x;
+                var x2 = x1 + this.target.width;
+                inbetweenHeads = (x1 > bbx.x  && x1 < bbx.x + bbx.width) || 
+                    (x2 > bbx.x  && x2 < bbx.x + bbx.width)
+            }
+
 
             // if it has a target and target not held by superrun
+            if (eating) {
+                var anim = this.states[this._state];
+                if (this._frame == 4 || this._frame == 15) {
+                    this.target.holder = this;
+                    this.target = null;
+                }
+                if (this._frame == anim.last) {
+                    this.set_state((this.flipped)? "stand_flip" : "stand"); 
+                }
+                return;
+            }
             if ( this.target != null && this.target.holder != super_run) {
                 //if over target
                 if (COLLIDER.collision(this.head,this.target)) {
-                    this.target.holder = this;
                     this.dx = this.dy = 0;
-                    this.target = null;
+                    this.set_state(((this.flipped)? "eat_flip" : "eat")); 
+                    return;
                 } else { //move in direction of flower
-                    var x1 = this.target.x;
-                    var x2 = x1 + this.target.width;
-                    inbetweenHeads = (x1 > this.x  && x1 < this.x + this.width) || 
-                                         (x2 > this.x  && x2 < this.x + this.width)
                     if (inbetweenHeads) {
                         this.dx = -10;
                     } else {
-                        move = distanceBetween({x:this.x,y:this.head.y,width:this.width,height:11}, this.target);
+                        move = distanceBetween(bbx, this.target);
                         this.dx = Math.min(Math.abs(move.dx) |0, 10) * ((move.dx > 0)? 1 : -1);
                         this.dy = Math.min(Math.abs(move.dy), 10) * ((move.dy > 0)? 1 : -1);
                     }
@@ -286,7 +302,7 @@ function game() {
 
             //always face target
             if (this.target != null) {
-                if (this.x >= this.target.x + this.target.width || inbetweenHeads) {
+                if (cx >= this.target.x + this.target.width || inbetweenHeads) {
                     this.flipped = true;
                 } else {
                     this.flipped = false;
@@ -306,9 +322,9 @@ function game() {
 
     dinosaur.getBoundingBox = function() {
         return {
-            x:this.x + this.width/2 - 15, 
-            y:this.y + this.height - this.depth/2,
-            width:30,
+            x:this.x + this.width/2 - 25, 
+            y:this.y + this.height - this.depth,
+            width:50,
             height:this.depth
         };
     };
@@ -402,8 +418,10 @@ function game() {
 
 function sortRules(a, b) {
    if (a.type == "flower" && a.holder != undefined) {
+        if (a.holder == dinosaur) {return -1};
         return 1;
    } else if (b.type == "flower" && b.holder != undefined) {
+        if (b.holder == dinosaur) {return 1};
        return -1; 
    } else { 
         var a = a.getIndex();
@@ -430,17 +448,18 @@ function draw() {
   //    } 
   //}
   //
-///////               ctx.strokeStyle = "red";
-///////               var head = dinosaur.head;
+///                   ctx.strokeStyle = "red";
+///                   var head = dinosaur.head;
+///                   var bbx = dinosaur.getBoundingBox();
 
-///////           if (dinosaur.target != undefined) {
-///////               var box = dinosaur.target.getBoundingBox();
-///////               ctx.strokeRect(box.x, box.y, box.width, box.height);
-///////           }
+///               if (dinosaur.target != undefined) {
+///                   var box = dinosaur.target.getBoundingBox();
+///                   ctx.strokeRect(box.x, box.y, box.width, box.height);
+///               }
 
-///////               ctx.strokeRect(head.x, head.y, head.width, head.height);
-///////               ctx.strokeStyle = "blue";
-///////               ctx.strokeRect(dinosaur.x, dinosaur.y, dinosaur.width, dinosaur.height);
+///                   ctx.strokeRect(head.x, head.y, head.width, head.height);
+///                   ctx.strokeStyle = "blue";
+///                   ctx.strokeRect(bbx.x, bbx.y, bbx.width, bbx.height);
 
     darkenViewBy(DARKNESS);
     for (var i = 0; i < FIREFLYS.length && (CUR_HOUR > 19 || CUR_HOUR < 5); i++) { 
