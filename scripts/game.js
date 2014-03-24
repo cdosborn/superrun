@@ -1,4 +1,3 @@
-var dinosaur;
 function game() {
     document.addEventListener('keydown', keyPressed, false);
     document.addEventListener('keyup', keyReleased, false); 
@@ -223,7 +222,7 @@ function game() {
             }
         }};
 
-    dinosaur = new Sprite({
+    var dinosaur = new Sprite({
         type:"dinosaur",
         flipped:false,
         angst: 5,

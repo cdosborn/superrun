@@ -6,11 +6,11 @@ var MAX_DARK = 8;
 var FIREFLY_LOCUS_X = Math.floor(Math.random() * 480);
 var FIREFLY_LOCUS_Y = Math.floor(Math.random() * 320);
 
-var CUR_HOUR = 10; //getLocalTime();
+var CUR_HOUR = getLocalTime();
 var STARTX = 480/2;
 var STARTY = 320/2;
-var NUM_SHEEP = 25;
-var NUM_FLOWERS = 25;
+var NUM_SHEEP = 5;
+var NUM_FLOWERS = 5;
 var NUM_FIREFLYS = 10;
 var DEBUG = false;
 var MINSCALE = 1;
